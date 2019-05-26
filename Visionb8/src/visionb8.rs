@@ -124,11 +124,68 @@ impl ImgBWVec {
 		}
 		self.image_matrix = temp_img_mat;
 	}
+	
+	fn find(index : u32, mut equivalency_list : Vec<u32>) -> u32{
+		let mut y : u32 = index;
+		let mut x : u32 = index;
+		while equivalency_list[(y - 1) as usize] != y{
+			y = equivalency_list[y as usize];
+		}
+		
+		while equivalency_list[(x - 1) as usize] != x{
+			let z = equivalency_list[y as usize];
+			equivalency_list[x as usize] = y;
+			x = z;
+		}
+		
+		y
+	}
+	
+	fn union(equivalency_list : &mut Vec<u32>, x : u32,  y : u32) {
+		equivalency_list[ImgBWVec::find(x, equivalency_list.clone()) as usize] = ImgBWVec::find(y,equivalency_list.clone());
+	}
+	
+	pub fn hoskop_coco (&self){
+		let mut counter:u32 =0;
+		let mut out_vec: Vec2d<u32> = vec![vec![0; self.width as usize]; self.height as usize];
+		let mut equivalency_list:Vec<u32> = Vec::new();
+		for image_y in 0..(self.height -1) {
+			for image_x in 0..(self.width -1) {
+				let back_neighbor;
+				let top_neighbor;
+				if self.image_matrix[image_y as usize][image_x as usize] {
+					if image_x > 0 {
+					back_neighbor = out_vec[image_y as usize][(image_x -1) as usize];
+				} else {
+					back_neighbor = 0;
+				}
+				if image_y > 0 {
+					top_neighbor = out_vec[(image_y -1) as usize][image_x as usize];
+				} else {
+					top_neighbor = 0;
+				}
+				
+				if back_neighbor == 0 && top_neighbor == 0 {
+					counter += 1;
+					out_vec[image_y as usize][image_x as usize] = counter;
+					equivalency_list.push(counter);
+				} else if back_neighbor != 0 && top_neighbor == 0 {
+					out_vec[image_y as usize][image_x as usize] = ImgBWVec::find(back_neighbor, equivalency_list.clone());
+				} else if back_neighbor == 0 && top_neighbor != 0{
+					out_vec[image_y as usize][image_x as usize] = ImgBWVec::find(top_neighbor, equivalency_list.clone());
+				} else {
+					
+				}
+				}	
+			}
+		}
+	}
+	
+	
 
 	pub fn label_coco(&self) -> Vec2d<u8> {
 		let mut vec_out: Vec2d<u8> = Vec2d::new();
 		let mut equivalency_list:Vec<u8> = Vec::new();
-		
 		let mut count = 0;
 		let mut obj_bount = 0;
 		for image_y in 0..(self.height -1) {
@@ -136,10 +193,7 @@ impl ImgBWVec {
 			for image_x in 0..(self.width -1) {
 				let back_neighbor;
 				let top_neighbor;
-
 				let label_out;
-				
-				
 				if image_x > 0 {
 					back_neighbor = line_vec[(image_x -1) as usize];
 				} else {
@@ -147,31 +201,21 @@ impl ImgBWVec {
 				}
 				if image_y > 0 {
 					top_neighbor = vec_out[(image_y -1) as usize][image_x as usize];
-					
 				} else {
 					top_neighbor = 0;
 				}
-				
-
 				if self.image_matrix[image_y as usize][image_x as usize] {
 					if back_neighbor == 0 && top_neighbor == 0 {
-						
 						count += 1;
 						obj_bount += 1;
 						label_out = count;
 						//println!("{}", label_out);
 						equivalency_list.push(count);
-						
-						
-						
 					} else if back_neighbor != 0 {
-						
 						label_out = back_neighbor;
 						if top_neighbor != back_neighbor && top_neighbor !=0 {
 							//println!("{} {}", top_neighbor,back_neighbor);
-							
 							equivalency_list[(top_neighbor - 1) as usize] = if top_neighbor > back_neighbor {back_neighbor}else{top_neighbor};
-						
 						}
 					} else {
 						label_out = top_neighbor;
@@ -181,13 +225,9 @@ impl ImgBWVec {
 				} else {
 					label_out = 0;
 				}
-				
 				line_vec.push(label_out);
-				
 			}
-			
-			vec_out.push(line_vec);
-			
+			vec_out.push(line_vec);	
 		}
 		
 		

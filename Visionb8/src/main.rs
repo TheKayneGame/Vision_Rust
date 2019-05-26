@@ -41,4 +41,5 @@ fn main() {
 	bw_vec.save_image("test3.bmp");
 
 	bw_vec.label_coco();
+	bw_vec.hoskop_coco();
 }

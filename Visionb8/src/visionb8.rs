@@ -20,6 +20,7 @@ pub struct ImgBWVec {
 	height: u32,
 }
 
+
 impl ImgBWVec {
 	pub fn new() -> ImgBWVec {
 		ImgBWVec {
@@ -57,14 +58,12 @@ impl ImgBWVec {
 		let window_height = window.len() as u32;
 		let window_width = window[0].len() as u32;
 		let mut temp_img_mat = Vec2d::new();
-		for image_y in 0..(self.height-1) {
+		for image_y in 0..(self.height - 1) {
 			let mut temp_vector: Vec<bool> = Vec::new();
-			for image_x in 0..(self.width-1) {
-				
+			for image_x in 0..(self.width - 1) {
 				let mut pix_out = true;
 				for window_y in 0..(window_height) {
 					for window_x in 0..(window_width) {
-						//println!("{} {}", window_x, window_y);
 						let x_check = image_x as i32 - centre_x as i32 + window_x as i32;
 						let y_check = image_y as i32 - centre_y as i32 + window_y as i32;
 
@@ -78,22 +77,10 @@ impl ImgBWVec {
 								pix_out = false;
 							}
 
-							if !pix_out {
-//								println!(
-//									"x{} y{} wx{} wy{} i{} w{} res{}",
-//									x_check,
-//									y_check,
-//									window_x,
-//									window_y,
-//									self.image_matrix[y_check as usize][x_check as usize],
-//									window[window_y as usize][window_x as usize],
-//									pix_out
-//								);
-							}
+							if !pix_out {}
 						}
 					}
 				}
-				//println!("{} {}", image_x, image_y);
 				temp_vector.push(pix_out);
 			}
 
@@ -101,19 +88,19 @@ impl ImgBWVec {
 		}
 		self.image_matrix = temp_img_mat;
 	}
-	
+
 	pub fn morph_dilate(&mut self, window: Vec2d<bool>, centre_x: u32, centre_y: u32) {
 		let window_height = window.len() as u32;
 		let window_width = window[0].len() as u32;
 		let mut temp_img_mat = Vec2d::new();
-		for image_y in 0..(self.height-1) {
+		for image_y in 0..(self.height - 1) {
 			let mut temp_vector: Vec<bool> = Vec::new();
-			for image_x in 0..(self.width-1) {
+			for image_x in 0..(self.width - 1) {
 				let mut pix_out = false;
 				for window_y in 0..(window_height) {
 					for window_x in 0..(window_width) {
-						let x_check = image_x as i32 - centre_x as i32 + window_x as i32 -1;
-						let y_check = image_y as i32 - centre_y as i32 + window_y as i32 -1;
+						let x_check = image_x as i32 - centre_x as i32 + window_x as i32 - 1;
+						let y_check = image_y as i32 - centre_y as i32 + window_y as i32 - 1;
 
 						if x_check >= 0
 							&& x_check <= self.width as i32
@@ -125,18 +112,7 @@ impl ImgBWVec {
 								pix_out = true;
 							}
 
-							if !pix_out {
-//								println!(
-//									"x{} y{} wx{} wy{} i{} w{} res{}",
-//									x_check,
-//									y_check,
-//									window_x,
-//									window_y,
-//									self.image_matrix[y_check as usize][x_check as usize],
-//									window[window_y as usize][window_x as usize],
-//									pix_out
-//								);
-							}
+							if pix_out {}
 						}
 					}
 				}
@@ -147,6 +123,89 @@ impl ImgBWVec {
 			temp_img_mat.push(temp_vector);
 		}
 		self.image_matrix = temp_img_mat;
+	}
+
+	pub fn label_coco(&self) -> Vec2d<u8> {
+		let mut vec_out: Vec2d<u8> = Vec2d::new();
+		let mut equivalency_list:Vec<u8> = Vec::new();
+		
+		let mut count = 0;
+		let mut obj_bount = 0;
+		for image_y in 0..(self.height -1) {
+			let mut line_vec = Vec::new();
+			for image_x in 0..(self.width -1) {
+				let back_neighbor;
+				let top_neighbor;
+
+				let label_out;
+				
+				
+				if image_x > 0 {
+					back_neighbor = line_vec[(image_x -1) as usize];
+				} else {
+					back_neighbor = 0;
+				}
+				if image_y > 0 {
+					top_neighbor = vec_out[(image_y -1) as usize][image_x as usize];
+					
+				} else {
+					top_neighbor = 0;
+				}
+				
+
+				if self.image_matrix[image_y as usize][image_x as usize] {
+					if back_neighbor == 0 && top_neighbor == 0 {
+						
+						count += 1;
+						obj_bount += 1;
+						label_out = count;
+						//println!("{}", label_out);
+						equivalency_list.push(count);
+						
+						
+						
+					} else if back_neighbor != 0 {
+						
+						label_out = back_neighbor;
+						if top_neighbor != back_neighbor && top_neighbor !=0 {
+							//println!("{} {}", top_neighbor,back_neighbor);
+							
+							equivalency_list[(top_neighbor - 1) as usize] = if top_neighbor > back_neighbor {back_neighbor}else{top_neighbor};
+						
+						}
+					} else {
+						label_out = top_neighbor;
+					}
+					//println!("{:?}", line_vec);
+					//println!("C{} x{} y{} b{} t{} l{}",count, image_x, image_y,back_neighbor,top_neighbor, label_out);
+				} else {
+					label_out = 0;
+				}
+				
+				line_vec.push(label_out);
+				
+			}
+			
+			vec_out.push(line_vec);
+			
+		}
+		
+		
+		
+		for y in 0..(self.height -1) {
+			for x in 0..(self.width -1)  {
+				if vec_out[y as usize][x as usize] != 0 {
+					vec_out[y as usize][x as usize] = equivalency_list[(vec_out[y as usize][x as usize] - 1) as usize];
+					
+				}
+				print!("{}, \t",vec_out[y as usize][x as usize])
+			}
+			println!();
+			
+		}
+		println!("{:?}",equivalency_list);
+		println!("{}",obj_bount);
+		vec_out
 	}
 }
 

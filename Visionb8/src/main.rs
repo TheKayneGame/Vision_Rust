@@ -3,7 +3,7 @@ mod visionb8;
 use image::GenericImageView;
 
 fn main() {
-	let path = "test.bmp";
+	let path = "13ogen.bmp";
 	println!("Hello, world!");
 
 	let img = image::open(path).unwrap();
@@ -34,12 +34,12 @@ fn main() {
 	];
 
 	bw_vec.save_image("test1.bmp");
-	//bw_vec.print_matrix();
-	//bw_vec.morph_erode(window.clone(), 1, 1);
+	bw_vec.print_matrix();
+	bw_vec.morph_erode(window.clone(), 1, 1);
 	bw_vec.save_image("test2.bmp");
-	//bw_vec.morph_dilate(window2.clone(), 3, 3);
+	bw_vec.morph_dilate(window2.clone(), 3, 3);
 	bw_vec.save_image("test3.bmp");
 
-	bw_vec.label_coco();
+	//bw_vec.label_coco();
 	bw_vec.hoskop_coco();
 }

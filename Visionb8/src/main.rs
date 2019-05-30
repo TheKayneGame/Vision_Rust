@@ -6,12 +6,13 @@ fn main() {
 	let path = "13ogen.bmp";
 	println!("Hello, world!");
 
-	let img = image::open(path).unwrap();
+	let imgpre = image::open(path).unwrap();
+	let img = imgpre.resize(1000, 300, image::imageops::Nearest);
 	println!("dimensions {:?}", img.dimensions());
 
 	let mut img_vec: visionb8::ImgVec = visionb8::ImgVec::new();
 
-	img_vec.load_image(path);
+	img_vec.load_image(img);
 	//
 	img_vec.grayscale();
 	//img_vec.print_matrix();
@@ -34,7 +35,7 @@ fn main() {
 	];
 
 	bw_vec.save_image("test1.bmp");
-	bw_vec.print_matrix();
+	//bw_vec.print_matrix();
 	bw_vec.morph_erode(window.clone(), 1, 1);
 	bw_vec.save_image("test2.bmp");
 	bw_vec.morph_dilate(window2.clone(), 3, 3);

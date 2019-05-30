@@ -1,5 +1,5 @@
 extern crate image;
-mod visionb8;
+mod vision8b;
 use image::GenericImageView;
 
 fn main() {
@@ -10,7 +10,7 @@ fn main() {
 	let img = imgpre.resize(1000, 300, image::imageops::Nearest);
 	println!("dimensions {:?}", img.dimensions());
 
-	let mut img_vec: visionb8::ImgVec = visionb8::ImgVec::new();
+	let mut img_vec: vision8b::ImgMat = vision8b::ImgMat::new();
 
 	img_vec.load_image(img);
 	//
@@ -20,13 +20,13 @@ fn main() {
 	let mut bw_vec = img_vec.treshold(210);
 	img_vec.save_image("testPre.bmp");
 	//bw_vec.print_matrix();
-	let window: visionb8::Vec2d<bool> = vec![
+	let window: vision8b::Vec2d<bool> = vec![
 		vec![false, true, false],
 		vec![true, true, true],
 		vec![false, true, false],
 	];
 
-	let window2: visionb8::Vec2d<bool> = vec![
+	let window2: vision8b::Vec2d<bool> = vec![
 		vec![false, true, true, true, false],
 		vec![true, true, true, true, true],
 		vec![true, true, true, true, true],

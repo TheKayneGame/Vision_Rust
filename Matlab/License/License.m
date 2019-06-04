@@ -1,17 +1,31 @@
 pkg load image;
 clear;
 
-image = imread("auto2.jpg");
+targetWidth = 1000;
+
+image = imread("auto1.jpg");
 
 sz = uint32(size(image));
 
+if sz(2) < targetWidth 
+  image = imresize(image, (targetWidth/sz(2)));
+endif
+
+if sz(2) > targetWidth 
+  image = imresize(image, (sz(2)/targetWidth));
+endif
+
+sz = uint32(size(image));
+
+%find the license plate
+
 mask = rgb2hsv(image) * 256;
 mask = (mask(:,:,1) > 30) & (mask(:,:,1) < 50) & (mask(:,:,2) > 170) & (mask(:,:,3) > 150);
-se = strel("disk", 20, 0);
-mask = imdilate(mask, se);
-mask = imerode(mask, se);
-mask = imerode(mask, se);
-mask = imdilate(mask, se);
+se = strel("disk", 10, 0);
+mask = imclose(mask, se);
+mask = imopen(mask, se);
+
+%find the horizontal sides of the license plate
 
 ylow = sz(1) + 1;
 yhigh = -1;
@@ -30,6 +44,8 @@ for x = 1 : sz(2)
   end
 end
 
+%find the vertical sides of the license plate
+
 xlow = sz(2) + 1;
 xhigh = -1;
 
@@ -47,21 +63,38 @@ for y = 1 : sz(1)
   end
 end
 
+%crop the original image to the license plate
+
 image = imcrop(image, [xlow ylow (xhigh - xlow) (yhigh - ylow)]);
+sz = size(image);
+
+%make the image black and white and invert so the license plate letters are white
 
 image = im2bw(image);
 image = imcomplement(image);
-se = strel("disk", 4, 0);
 
-sz = size(image);
+%clean the black and white image
 
-mask = imread("LetterMasks/3.png");
+se = strel("disk", 1, 0);
+image = imopen(image, se);
+image = imclose(image, se);
+
+image = imclose(image, se);
+image = imopen(image, se);
+
+%load mask and detect mask
+mask = imread("LetterMasks/r.png");
+masksz = size(mask);
+mask = imresize(mask, (sz(1)/masksz(1)) * (6/10));
 mask = im2bw(mask);
 mask = imcomplement(mask);
-mask = imerode(mask, strel("disk", 1, 0));
+
+se = strel("disk", 2, 0);
+mask = imerode(mask, se);
 
 detect = imerode(image, mask);
-detect = imerode(detect, strel("disk", 1, 0));
+
+%print the results on screen
 
 subplot(2,2,1); imshow(image);
 subplot(2,2,2); imshow(mask);

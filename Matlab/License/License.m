@@ -1,11 +1,9 @@
 pkg load image;
 clear;
 
-isTest = 0;
-
 targetHeight = 50;
 
-image = imread("nummerbord.jpg");
+image = imread("auto3.jpg");
 
 sz = uint32(size(image));
 
@@ -90,10 +88,13 @@ objects([objects.Area]<=100) = [];
 %license string declaration
 licenseString = char([]);
 
+%probability array
+probsArray = struct([]);
+
 %find all characters in image
 for character = objects'
   characterImage = imcrop(image, [character.BoundingBox(1) - 1, 0, character.BoundingBox(3) + 1, sz(1)]);
-  
+  %figure; imshow(characterImage);
   %reset probability and character
   probability = 0;
   detectedChar = '0';
@@ -106,19 +107,11 @@ for character = objects'
     
     %check probability and set character
     detectProbability = regionprops(detect, "Area");
-    
+     
     if [detectProbability.Area] > probability
       probability = detectProbability.Area;
       detectedChar = imageFile.name(1);
     end  
-
-    if isTest == 1 
-      subplot(2,2,1); imshow(image); title("Black White license");
-      subplot(2,2,2); imshow(mask); title("Current Mask");
-      subplot(2,2,3); imshow(detect); title("After Erosion");
-      subplot(2,2,4); imshow(characterImage); title("Current Character to detect");
-    end
-    
   end
   
   %push character to end of string

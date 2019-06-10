@@ -64,8 +64,7 @@ sz = size(image);
 image = im2bw(image);
 image = imcomplement(image);
 
-image(1:3, :) = 0;
-image(47:50, :) = 0;
+image = imclearborder(image);
 
 %clean the black and white image
 
@@ -76,33 +75,50 @@ image = imclose(image, se);
 image = imclose(image, se);
 image = imopen(image, se);
 
+%find all masks and remove . and ..
+masksList = dir("LetterMasks");
+masksList(1:2) = [];
+
 %get objects
 objects = regionprops(image, 'Area', 'BoundingBox');
 
 %remove non characters
 objects([objects.Area]<=100) = [];
 
-%find all masks and remove . and ..
-masksList = dir("LetterMasks");
-masksList(1:2) = [];
+%license string declaration
+licenseString = char([]);
 
 %find all characters in image
 for character = objects'
   characterImage = imcrop(image, character.BoundingBox);
   
+  %reset probability and character
+  probability = 0;
+  detectedChar = '0';
+  
   for imageFile = masksList'
     mask = imread(["LetterMasks/", imageFile.name]);
     mask = im2bw(mask);
     detect = imerode(characterImage, mask);
+    detect = imclearborder(detect);
     
-    subplot(2,2,2); imshow(characterImage);
-    subplot(2,2,3); imshow(mask);
-    subplot(2,2,4); imshow(detect);
-
+    %check probability and set character
+    detectProbability = regionprops(detect, "Area");
+    
+    if [detectProbability.Area] > probability
+      probability = detectProbability.Area;
+      detectedChar = imageFile.name(1);
+    end  
+    
+##    subplot(2,2,1); imshow(image);
+##    subplot(2,2,2); imshow(mask);
+##    subplot(2,2,3); imshow(detect);
+##    subplot(2,2,4); imshow(characterImage);
   end
+  
+  %push character to end of string
+  licenseString = [licenseString, detectedChar];
 end
 
-%print the results on screen
-subplot(2,2,1); imshow(image);
-subplot(2,2,2); imshow(mask);
-subplot(2,2,3); imshow(detect);
+imshow(image);
+title(licenseString);

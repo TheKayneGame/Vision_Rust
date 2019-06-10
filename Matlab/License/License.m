@@ -1,23 +1,13 @@
 pkg load image;
 clear;
 
-targetWidth = 1000;
+targetHeight = 50;
 
-image = imread("auto1.jpg");
-
-sz = uint32(size(image));
-
-if sz(2) < targetWidth 
-  image = imresize(image, (targetWidth/sz(2)));
-endif
-
-if sz(2) > targetWidth 
-  image = imresize(image, (sz(2)/targetWidth));
-endif
+image = imread("nummerbord.jpg");
 
 sz = uint32(size(image));
 
-%find the license plate
+%load the license plate
 
 mask = rgb2hsv(image) * 256;
 mask = (mask(:,:,1) > 30) & (mask(:,:,1) < 50) & (mask(:,:,2) > 170) & (mask(:,:,3) > 150);
@@ -67,9 +57,10 @@ end
 
 image = imcrop(image, [xlow ylow (xhigh - xlow) (yhigh - ylow)]);
 sz = size(image);
+image = imresize(image, targetHeight/sz(1));
+sz = size(image);
 
 %make the image black and white and invert so the license plate letters are white
-
 image = im2bw(image);
 image = imcomplement(image);
 
@@ -83,15 +74,11 @@ image = imclose(image, se);
 image = imopen(image, se);
 
 %load mask and detect mask
-mask = imread("LetterMasks/r.png");
+mask = imread("LetterMasks/9.png");
 masksz = size(mask);
-mask = imresize(mask, (sz(1)/masksz(1)) * (6/10));
+
 mask = im2bw(mask);
-mask = imcomplement(mask);
-
-se = strel("disk", 2, 0);
-mask = imerode(mask, se);
-
+%mask = imcomplement(mask);
 detect = imerode(image, mask);
 
 %print the results on screen

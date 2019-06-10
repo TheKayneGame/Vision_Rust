@@ -3,7 +3,7 @@ clear;
 
 targetHeight = 50;
 
-image = imread("nummerbord.jpg");
+image = imread("auto1.jpg");
 
 sz = uint32(size(image));
 
@@ -64,6 +64,9 @@ sz = size(image);
 image = im2bw(image);
 image = imcomplement(image);
 
+image(1:3, :) = 0;
+image(47:50, :) = 0;
+
 %clean the black and white image
 
 se = strel("disk", 1, 0);
@@ -74,12 +77,15 @@ image = imclose(image, se);
 image = imopen(image, se);
 
 %load mask and detect mask
-mask = imread("LetterMasks/9.png");
+mask = imread("LetterMasks/4.png");
 masksz = size(mask);
 
 mask = im2bw(mask);
 %mask = imcomplement(mask);
 detect = imerode(image, mask);
+
+%get objects
+objects = regionprops(image, 'Area', 'BoundingBox');
 
 %print the results on screen
 

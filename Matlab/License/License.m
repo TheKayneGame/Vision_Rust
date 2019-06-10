@@ -76,19 +76,33 @@ image = imclose(image, se);
 image = imclose(image, se);
 image = imopen(image, se);
 
-%load mask and detect mask
-mask = imread("LetterMasks/4.png");
-masksz = size(mask);
-
-mask = im2bw(mask);
-%mask = imcomplement(mask);
-detect = imerode(image, mask);
-
 %get objects
 objects = regionprops(image, 'Area', 'BoundingBox');
 
-%print the results on screen
+%remove non characters
+objects([objects.Area]<=100) = [];
 
+%find all masks and remove . and ..
+masksList = dir("LetterMasks");
+masksList(1:2) = [];
+
+%find all characters in image
+for character = objects'
+  characterImage = imcrop(image, character.BoundingBox);
+  
+  for imageFile = masksList'
+    mask = imread(["LetterMasks/", imageFile.name]);
+    mask = im2bw(mask);
+    detect = imerode(characterImage, mask);
+    
+    subplot(2,2,2); imshow(characterImage);
+    subplot(2,2,3); imshow(mask);
+    subplot(2,2,4); imshow(detect);
+
+  end
+end
+
+%print the results on screen
 subplot(2,2,1); imshow(image);
 subplot(2,2,2); imshow(mask);
 subplot(2,2,3); imshow(detect);

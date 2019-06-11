@@ -215,4 +215,38 @@ impl ImgBWMat {
 		println!("obj_count:{}", labels.len());
 	}
 
+	pub fn resize(&mut self, ratio : f64){
+		let new_height : u32 = ((self.height as f64) * (ratio)) as u32;
+		let new_width : u32 = ((self.width as f64) * (ratio)) as u32;
+
+		let mut new_image : Vec2d<bool> = vec![vec![false; new_width as usize]; new_height as usize];
+
+		for y in 0..(self.height - 1) {
+			for x in 0..(self.width - 1) {
+				let new_y = (y as f64 * ratio) as usize;
+				let new_x = (x as f64 * ratio) as usize;
+
+				new_image[new_y][new_x] = self.image_matrix[y as usize][x as usize];
+			}
+		}
+
+		self.image_matrix = new_image;
+		self.height = new_height;
+		self.width = new_width;
+
+		self.clean_image();
+	}
+
+	fn clean_image(&mut self){
+		let window: Vec2d<bool> = vec![
+			vec![false, true, true, true, false],
+			vec![true, true, true, true, true],
+			vec![true, true, true, true, true],
+			vec![true, true, true, true, true],
+			vec![false, true, true, true, false],
+		];
+
+		self.morph_dilate(window.clone(), 3, 3);
+		self.morph_erode(window.clone(), 3, 3);
+	}
 }

@@ -3,7 +3,9 @@ clear;
 
 targetHeight = 50;
 
-image = imread("auto4.jpg");
+carFile = "auto4.jpg";
+
+image = imread(carFile);
 
 sz = uint32(size(image));
 
@@ -125,6 +127,6 @@ for character = objects'
 end
 
 subplot(1,1,1);
+image = imread(carFile);
 imshow(image);
-%imshow(mask);
 title(licenseString);

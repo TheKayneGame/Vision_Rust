@@ -3,14 +3,14 @@ clear;
 
 targetHeight = 50;
 
-image = imread("auto3.jpg");
+image = imread("auto4.jpg");
 
 sz = uint32(size(image));
 
 %load the license plate
 
 mask = rgb2hsv(image) * 256;
-mask = (mask(:,:,1) > 30) & (mask(:,:,1) < 50) & (mask(:,:,2) > 170) & (mask(:,:,3) > 150);
+mask = (mask(:,:,1) > 15) & (mask(:,:,1) < 50) & (mask(:,:,2) > 170) & (mask(:,:,3) > 150);
 se = strel("disk", 10, 0);
 mask = imclose(mask, se);
 mask = imopen(mask, se);
@@ -61,6 +61,12 @@ image = imresize(image, targetHeight/sz(1));
 sz = size(image);
 
 %make the image black and white and invert so the license plate letters are white
+image = rgb2gray(image);
+
+if mean2(image) < 128
+  image += 128 - mean2(image);
+end 
+
 image = im2bw(image);
 image = imcomplement(image);
 
@@ -120,4 +126,5 @@ end
 
 subplot(1,1,1);
 imshow(image);
+%imshow(mask);
 title(licenseString);

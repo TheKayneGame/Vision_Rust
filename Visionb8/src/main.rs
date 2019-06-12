@@ -18,6 +18,7 @@ fn main() {
 	//img_vec.print_matrix();
 	img_vec.invert();
 	let mut bw_vec = img_vec.treshold(210);
+	let mut label_vec = vision8b::ImgLabelMat::new();
 	img_vec.save_image("testPre.bmp");
 	//bw_vec.print_matrix();
 	let window: vision8b::Vec2d<bool> = vec![
@@ -40,7 +41,9 @@ fn main() {
 	bw_vec.save_image("test2.bmp");
 	bw_vec.morph_dilate(window2.clone(), 3, 3);
 	bw_vec.save_image("test3.bmp");
-
+	label_vec.hoskop_coco(bw_vec.clone());
+	label_vec.print_matrix();
+	
 	//bw_vec.label_coco();
-	bw_vec.hoskop_coco();
+	//bw_vec.hoskop_coco();
 }

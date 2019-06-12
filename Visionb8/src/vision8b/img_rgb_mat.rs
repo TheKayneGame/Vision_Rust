@@ -122,6 +122,10 @@ impl ImgMat {
 
 		let _res = img.save(path);
 	}
+	
+
+	
+	
 
 	pub fn print_matrix(&self) {
 		for line in self.image_matrix.iter() {

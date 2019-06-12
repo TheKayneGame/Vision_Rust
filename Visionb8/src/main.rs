@@ -40,8 +40,8 @@ fn main() {
 	bw_vec.save_image("test2.bmp");
 	bw_vec.morph_dilate(window2.clone(), 3, 3);
 	bw_vec.save_image("test3.bmp");
-	bw_vec.resize(2.0);
-	bw_vec.save_image("test4.bmp");
+	//bw_vec.resize(2.0);
+	//bw_vec.save_image("test4.bmp");
 
 	//bw_vec.label_coco();
 	bw_vec.hoskop_coco();

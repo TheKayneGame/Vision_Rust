@@ -46,14 +46,14 @@ impl ImgBWMat {
 		let window_height = window.len() as u32;
 		let window_width = window[0].len() as u32;
 		let mut temp_img_mat = Vec2d::new();
-		for image_y in 0..(self.height - 1) {
+		for image_y in 0..(self.height) {
 			let mut temp_vector: Vec<bool> = Vec::new();
-			for image_x in 0..(self.width - 1) {
+			for image_x in 0..(self.width) {
 				let mut pix_out = true;
 				for window_y in 0..(window_height) {
 					for window_x in 0..(window_width) {
-						let x_check = image_x as i32 - centre_x as i32 + window_x as i32;
-						let y_check = image_y as i32 - centre_y as i32 + window_y as i32;
+						let x_check = image_x as i32 - centre_x as i32 + window_x as i32 - 1;
+						let y_check = image_y as i32 - centre_y as i32 + window_y as i32 - 1;
 
 						if x_check >= 0
 							&& x_check <= self.width as i32
@@ -71,7 +71,6 @@ impl ImgBWMat {
 				}
 				temp_vector.push(pix_out);
 			}
-
 			temp_img_mat.push(temp_vector);
 		}
 		self.image_matrix = temp_img_mat;
@@ -81,9 +80,9 @@ impl ImgBWMat {
 		let window_height = window.len() as u32;
 		let window_width = window[0].len() as u32;
 		let mut temp_img_mat = Vec2d::new();
-		for image_y in 0..(self.height - 1) {
+		for image_y in 0..(self.height) {
 			let mut temp_vector: Vec<bool> = Vec::new();
-			for image_x in 0..(self.width - 1) {
+			for image_x in 0..(self.width) {
 				let mut pix_out = false;
 				for window_y in 0..(window_height) {
 					for window_x in 0..(window_width) {
@@ -202,10 +201,6 @@ impl ImgBWMat {
 					out_vec[y as usize][x as usize] = temp_label;
 					
 				}
-				
-				
-				
-
 			}
 			println!();
 		}
@@ -231,19 +226,21 @@ impl ImgBWMat {
 		}
 
 		self.image_matrix = new_image;
-		self.height = new_height;
-		self.width = new_width;
+		self.height = self.image_matrix.len() as u32;
+		self.width = self.image_matrix[0].len() as u32;
 
-		self.clean_image();
+		if ratio > 1.0 {
+			self.clean_image();
+		}
 	}
 
 	fn clean_image(&mut self){
 		let window: Vec2d<bool> = vec![
-			vec![false, true, true, true, false],
-			vec![true, true, true, true, true],
-			vec![true, true, true, true, true],
-			vec![true, true, true, true, true],
-			vec![false, true, true, true, false],
+			vec![false	, true	, true	, true	, false	],
+			vec![true	, true	, true	, true	, true	],
+			vec![true	, true	, true	, true	, true	],
+			vec![true	, true	, true	, true	, true	],
+			vec![false	, true	, true	, true	, false	],
 		];
 
 		self.morph_dilate(window.clone(), 3, 3);

@@ -65,7 +65,7 @@ impl ImgBWMat {
 						let x_check = image_x as i32 - centre_x as i32 + window_x as i32 - 1;
 						let y_check = image_y as i32 - centre_y as i32 + window_y as i32 - 1;
 
-						if x_check >= 0
+						if (x_check >= 0) && ((x_check as u32) < self.width && ((y_check as u32) < self.height))
 							&& x_check <= self.width as i32
 							&& y_check >= 0 && y_check <= self.height as i32
 						{
@@ -100,7 +100,7 @@ impl ImgBWMat {
 						let x_check = image_x as i32 - centre_x as i32 + window_x as i32 - 1;
 						let y_check = image_y as i32 - centre_y as i32 + window_y as i32 - 1;
 
-						if x_check >= 0
+						if (x_check >= 0) && ((x_check as u32) < self.width && ((y_check as u32) < self.height))
 							&& x_check <= self.width as i32
 							&& y_check >= 0 && y_check <= self.height as i32
 						{

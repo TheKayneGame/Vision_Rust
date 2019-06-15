@@ -1,5 +1,25 @@
 use crate::vision8b::*;
 
+#[test]
+fn test_auto_1(){
+    detect_license_plate("auto1.jpg");
+}
+
+#[test]
+fn test_auto_2(){
+    detect_license_plate("auto2.jpg");
+}
+
+#[test]
+fn test_auto_3(){
+    detect_license_plate("auto3.jpg");
+}
+
+#[test]
+fn test_auto_4(){
+    detect_license_plate("auto1.jpg");
+}
+
 pub fn detect_license_plate(path : &str){
 	let target_height = 50.0 as f64;
 	let image_load = image::open(path).unwrap();
@@ -8,8 +28,9 @@ pub fn detect_license_plate(path : &str){
 
 	image.load_image(image_load);
 
-    //create mask from license plate
-    let license_mask = get_license_mask(&image);
+    let mut license_mask = get_license_mask(&image);
+
+    clean_license_mask(&mut license_mask);
 
     let coordinates = find_license_bounderies(&license_mask);
 
@@ -27,11 +48,40 @@ pub fn detect_license_plate(path : &str){
 
     image_bw.resize(target_height / image_bw.height as f64);
 
-    //clear border
+    image_bw.save_image("license.bmp");
+}
+
+fn clean_license_mask(license_mask : &mut ImgBWMat){
+    let mask : Vec2d<bool> = vec![vec![true; 10]; 10];
+    license_mask.morph_dilate(mask.clone(), 3, 3);
+    license_mask.morph_erode(mask.clone(), 3, 3);
+    license_mask.morph_erode(mask.clone(), 3, 3);
+    license_mask.morph_dilate(mask.clone(), 3, 3);
 }
 
 fn get_license_mask(image : &ImgMat) -> ImgBWMat{
-    unimplemented!();
+    let hsv = image.rgb_to_hsv();
+    let mut license_mask : ImgBWMat = ImgBWMat::new();
+
+    license_mask.width = hsv.width;
+    license_mask.height = hsv.height;
+    license_mask.image_matrix = vec![vec![false; hsv.width as usize]; hsv.height as usize];
+
+    for y in 0..(hsv.height as usize) {
+        for x in 0..(hsv.width as usize){
+            let hue = hsv.image_matrix[y][x].hue;
+            let saturation = hsv.image_matrix[y][x].saturation;
+            let value = hsv.image_matrix[y][x].value;
+
+            if hue > 15 && hue < 50 && saturation > 170 && value > 150{
+                license_mask.image_matrix[y][x] = true;
+            }else{
+                license_mask.image_matrix[y][x] = false;
+            }
+        }
+    }
+
+    return license_mask;
 }
 
 fn find_license_bounderies(license_mask : &ImgBWMat) -> (u32, u32, u32, u32){

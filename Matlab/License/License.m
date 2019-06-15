@@ -3,7 +3,7 @@ clear;
 
 targetHeight = 50;
 
-carFile = "auto4.jpg";
+carFile = "auto1.jpg";
 
 image = imread(carFile);
 
@@ -130,3 +130,5 @@ subplot(1,1,1);
 image = imread(carFile);
 imshow(image);
 title(licenseString);
+
+%imshow(mask);

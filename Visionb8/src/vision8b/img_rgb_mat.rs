@@ -1,4 +1,7 @@
 use crate::vision8b::img_bw_mat::ImgBWMat;
+use crate::vision8b::img_hsv_mat::ImgHSVMat;
+use crate::vision8b::img_hsv_mat::HSVPixel;
+use crate::vision8b::img_hsv_mat::convert_rgb_pixel_to_hsv;
 
 use image::GenericImage;
 use image::GenericImageView;
@@ -162,20 +165,39 @@ impl ImgMat {
 	}
 
 	pub fn pixel_mean(&self) -> u8{
-		let mut average = 
-			(self.image_matrix[0][0][0] +
-			self.image_matrix[0][0][1] +
-			self.image_matrix[0][0][2]) / 3;
+		let mut average : u8 = 
+			(((self.image_matrix[0][0][0] as u16) +
+			(self.image_matrix[0][0][1] as u16) +
+			(self.image_matrix[0][0][2] as u16)) / 3) as u8;
 
 		for y in 0..(self.height as usize){
 			for x in 1..(self.width as usize){ 
-				average += (self.image_matrix[y][x][0] +
-							self.image_matrix[y][x][1] +
-							self.image_matrix[y][x][2]) / 3;
+				average += (((self.image_matrix[0][0][0] as u16) +
+							(self.image_matrix[0][0][1] as u16) +
+							(self.image_matrix[0][0][2] as u16)) / 3) as u8;
 				average /= 2;
 			}
 		}
 
-		return average; 
+		return average as u8; 
+	}
+
+	pub fn rgb_to_hsv(&self) -> ImgHSVMat {
+
+		let mut hsv_mat : ImgHSVMat = ImgHSVMat::new();
+
+		hsv_mat.height = self.height;
+		hsv_mat.width = self.width;
+
+		for y in 0..(self.height as usize) {
+			let mut x_vector : Vec<HSVPixel> = Vec::new();
+			for x in 0..(self.width as usize){
+				x_vector.push(convert_rgb_pixel_to_hsv(&self.image_matrix[y][x]));
+			}
+
+			hsv_mat.image_matrix.push(x_vector);
+		}
+
+		return hsv_mat;
 	}
 }

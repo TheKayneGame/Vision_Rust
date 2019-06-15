@@ -25,7 +25,7 @@ pub fn detect_license_plate(path : &str){
     image.invert();
     let mut image_bw = image.treshold(128);
 
-    image_bw.resize(target_height / image_bw.height);
+    image_bw.resize(target_height / image_bw.height as f64);
 
     //clear border
 }
@@ -81,7 +81,7 @@ fn find_x_bounderies(image : &ImgBWMat) -> (u32, u32){
     return (x_low as u32, x_high as u32);
 }
 
-fn find_x_bounderies_lower_higer(x_low : &mut i32, mut x_high : &mut i32, x : usize){
+fn find_x_bounderies_lower_higer(x_low : &mut i32, x_high : &mut i32, x : usize){
     if (x as i32) < *x_low {
         *x_low = x as i32;
     }

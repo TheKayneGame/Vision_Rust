@@ -14,6 +14,8 @@ fn main() {
 
 	img_vec.load_image(img);
 	//
+	img_vec.save_image("cropped.bmp");
+
 	img_vec.grayscale();
 	//img_vec.print_matrix();
 	img_vec.invert();
@@ -35,15 +37,19 @@ fn main() {
 		vec![false, true, true, true, false],
 	];
 
+
 	bw_vec.save_image("test1.bmp");
-	//bw_vec.print_matrix();
+
 	bw_vec.morph_erode(window.clone(), 1, 1);
 	bw_vec.save_image("test2.bmp");
+
 	bw_vec.morph_dilate(window2.clone(), 3, 3);
 	bw_vec.save_image("test3.bmp");
+	
 	//bw_vec.resize(2.0);
 	//bw_vec.save_image("test4.bmp");
 
 	label_vec.hoskop_coco(bw_vec.clone());
 	//label_vec.print_matrix();
+	vision8b::license_plate::detect_license_plate("auto1.jpg");
 }

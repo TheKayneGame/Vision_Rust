@@ -83,6 +83,7 @@ impl ImgBWMat {
 			}
 			temp_img_mat.push(temp_vector);
 		}
+
 		self.image_matrix = temp_img_mat;
 	}
 
@@ -157,6 +158,39 @@ impl ImgBWMat {
 
 		self.morph_dilate(window.clone(), 3, 3);
 		self.morph_erode(window.clone(), 3, 3);
+	}
+
+	pub fn count_white_pixels(&self) -> u32{
+		let mut whites : u32 = 0;
+
+		for y in 0..(self.height as usize) {
+			for x in 0..(self.width as usize) {
+				if self.image_matrix[y][x] {
+					whites = whites + 1;
+				}
+			}
+		}
+
+		return whites;
+	}
+
+	pub fn crop_image(&mut self, upper_left_x : u32, upper_left_y : u32, lower_right_x : u32, lower_right_y : u32){
+		let mut new_image: Vec2d<bool> = Vec::new();
+		for y in upper_left_y..lower_right_y {
+			let mut new_x_line: Vec<bool> = Vec::new();
+			for x in upper_left_x..lower_right_x {
+				new_x_line.push(self.image_matrix[y as usize][x as usize]);
+			}
+			new_image.push(new_x_line);
+		}
+
+		self.image_matrix = new_image;
+		self.width = self.image_matrix[0].len() as u32;
+		self.height = self.image_matrix.len() as u32;
+	}
+
+	pub fn clear_border(){
+		unimplemented!();
 	}
 }
 

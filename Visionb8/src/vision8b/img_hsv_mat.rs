@@ -1,4 +1,4 @@
-
+/*use image::Rgba;
 
 pub type Vec2d<T> = Vec<Vec<T>>; //2D vector
 
@@ -25,4 +25,4 @@ impl ImgHSVMat {
 		
 		hsv
 	}
-}
+}*/

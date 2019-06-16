@@ -165,16 +165,16 @@ impl ImgMat {
 	}
 
 	pub fn pixel_mean(&self) -> u8{
-		let mut average : u8 = 
-			(((self.image_matrix[0][0][0] as u16) +
+		let mut average = 
+			((self.image_matrix[0][0][0] as u16) +
 			(self.image_matrix[0][0][1] as u16) +
-			(self.image_matrix[0][0][2] as u16)) / 3) as u8;
+			(self.image_matrix[0][0][2] as u16)) / 3;
 
 		for y in 0..(self.height as usize){
 			for x in 1..(self.width as usize){ 
-				average += (((self.image_matrix[0][0][0] as u16) +
-							(self.image_matrix[0][0][1] as u16) +
-							(self.image_matrix[0][0][2] as u16)) / 3) as u8;
+				average += ((self.image_matrix[y][x][0] as u16) +
+							(self.image_matrix[y][x][1] as u16) +
+							(self.image_matrix[y][x][2] as u16)) / 3;
 				average /= 2;
 			}
 		}

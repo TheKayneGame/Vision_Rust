@@ -193,6 +193,10 @@ impl ImgBWMat {
 					self.image_matrix[y][x] = false;
 					y += 1;
 
+					if y == self.image_matrix.len() {
+						break;
+					}
+
 					if !self.image_matrix[y][x] {
 						break;
 					}
@@ -213,7 +217,12 @@ impl ImgBWMat {
 				let mut y = self.image_matrix.len() -1;
 				loop{
 					self.image_matrix[y][x] = false;
+
 					y -= 1;
+
+					if y == 0 {
+						break;
+					}
 
 					if !self.image_matrix[y][x] {
 						break;
@@ -230,7 +239,12 @@ impl ImgBWMat {
 				
 				loop{
 					self.image_matrix[y][x] = false;
+
 					x += 1;
+
+					if x == self.image_matrix[0].len() {
+						break;
+					}
 
 					if !self.image_matrix[y][x] {
 						break;
@@ -247,7 +261,12 @@ impl ImgBWMat {
 
 				loop{
 					self.image_matrix[y][x] = false;
+
 					x -= 1;
+
+					if x == 0 {
+						break;
+					}
 
 					if !self.image_matrix[y][x] {
 						break;

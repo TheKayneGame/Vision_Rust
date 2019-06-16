@@ -1,4 +1,7 @@
 use crate::vision8b::img_bw_mat::ImgBWMat;
+use crate::vision8b::img_hsv_mat::ImgHSVMat;
+use crate::vision8b::img_hsv_mat::HSVPixel;
+use crate::vision8b::img_hsv_mat::convert_rgb_pixel_to_hsv;
 
 use image::GenericImage;
 use image::GenericImageView;
@@ -122,7 +125,21 @@ impl ImgMat {
 
 		let _res = img.save(path);
 	}
+	
 
+	pub fn adjust_brightness(&mut self, brightness : i16){
+		for y in 0..(self.height as usize) {
+			for x in 0..(self.width as usize) {
+				self.image_matrix[y][x] = image::Rgba::from_channels(
+					((self.image_matrix[y][x][0] as i16) + brightness) as u8,
+					((self.image_matrix[y][x][1] as i16) + brightness) as u8,
+					((self.image_matrix[y][x][2] as i16) + brightness) as u8,
+					255u8
+				);
+			}
+		}
+	}
+	
 	pub fn print_matrix(&self) {
 		for line in self.image_matrix.iter() {
 			for pixel in line {
@@ -130,5 +147,57 @@ impl ImgMat {
 			}
 			println!();
 		}
+	}
+
+	pub fn crop_image(&mut self, upper_left_x : u32, upper_left_y : u32, lower_right_x : u32, lower_right_y : u32){
+		let mut new_image: Vec2d<Rgba<u8>> = Vec::new();
+		for y in upper_left_y..lower_right_y {
+			let mut new_x_line: Vec<Rgba<u8>> = Vec::new();
+			for x in upper_left_x..lower_right_x {
+				new_x_line.push(self.image_matrix[y as usize][x as usize]);
+			}
+			new_image.push(new_x_line);
+		}
+
+		self.image_matrix = new_image;
+		self.width = self.image_matrix[0].len() as u32;
+		self.height = self.image_matrix.len() as u32;
+	}
+
+	pub fn pixel_mean(&self) -> u8{
+		let mut average = 
+			((self.image_matrix[0][0][0] as u16) +
+			(self.image_matrix[0][0][1] as u16) +
+			(self.image_matrix[0][0][2] as u16)) / 3;
+
+		for y in 0..(self.height as usize){
+			for x in 1..(self.width as usize){ 
+				average += ((self.image_matrix[y][x][0] as u16) +
+							(self.image_matrix[y][x][1] as u16) +
+							(self.image_matrix[y][x][2] as u16)) / 3;
+				average /= 2;
+			}
+		}
+
+		return average as u8; 
+	}
+
+	pub fn rgb_to_hsv(&self) -> ImgHSVMat {
+
+		let mut hsv_mat : ImgHSVMat = ImgHSVMat::new();
+
+		hsv_mat.height = self.height;
+		hsv_mat.width = self.width;
+
+		for y in 0..(self.height as usize) {
+			let mut x_vector : Vec<HSVPixel> = Vec::new();
+			for x in 0..(self.width as usize){
+				x_vector.push(convert_rgb_pixel_to_hsv(&self.image_matrix[y][x]));
+			}
+
+			hsv_mat.image_matrix.push(x_vector);
+		}
+
+		return hsv_mat;
 	}
 }

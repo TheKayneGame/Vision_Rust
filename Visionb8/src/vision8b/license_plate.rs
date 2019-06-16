@@ -1,5 +1,9 @@
 use crate::vision8b::*;
 
+use std::io;
+use std::fs::{self, DirEntry};
+use std::path::Path;
+
 #[test]
 fn test_auto_1(){
     detect_license_plate("auto1.jpg");
@@ -17,7 +21,7 @@ fn test_auto_3(){
 
 #[test]
 fn test_auto_4(){
-    detect_license_plate("auto1.jpg");
+    detect_license_plate("auto4.jpg");
 }
 
 pub fn detect_license_plate(path : &str){
@@ -30,33 +34,53 @@ pub fn detect_license_plate(path : &str){
 
     let mut license_mask = get_license_mask(&image);
 
-    clean_license_mask(&mut license_mask);
+    clean_bw_image(&mut license_mask, 10);
 
     let coordinates = find_license_bounderies(&license_mask);
 
     image.crop_image(coordinates.0, coordinates.1, coordinates.2, coordinates.3);
+
     image.grayscale();
 
-    let mean = image.pixel_mean();
-
-    if mean < 128 {
-        image.adjust_brightness(128 - (mean as i16));
-    }
-
     image.invert();
+
     let mut image_bw = image.treshold(128);
 
     image_bw.resize(target_height / image_bw.height as f64);
 
+    clean_bw_image(&mut image_bw, 2);
+
+    image_bw.clear_border();
+
     image_bw.save_image("license.bmp");
+
+    find_license_string(&image_bw);
 }
 
-fn clean_license_mask(license_mask : &mut ImgBWMat){
-    let mask : Vec2d<bool> = vec![vec![true; 10]; 10];
-    license_mask.morph_dilate(mask.clone(), 3, 3);
-    license_mask.morph_erode(mask.clone(), 3, 3);
-    license_mask.morph_erode(mask.clone(), 3, 3);
-    license_mask.morph_dilate(mask.clone(), 3, 3);
+fn find_license_string(license_plate : &ImgBWMat){
+    let paths = fs::read_dir("./LetterMasks").unwrap();
+
+    let mut label_vec = ImgLabelMat::new();
+    let mut characters = Vec::new();
+
+    label_vec.hoskop_coco(license_plate.clone());
+
+    for boundary in label_vec.boundaries{   
+        if boundary.Area() > 200 {
+            let mut character = license_plate.clone();
+            character.crop_image(boundary.min.0, 0, boundary.max.0, license_plate.image_matrix.len() as u32);
+            characters.push(character);
+        }
+    }
+}
+
+fn clean_bw_image(license_mask : &mut ImgBWMat, size: u32){
+    let mask : Vec2d<bool> = create_disk(size);
+
+    license_mask.morph_dilate(&mask);
+    license_mask.morph_erode(&mask);
+    license_mask.morph_erode(&mask);
+    license_mask.morph_dilate(&mask);
 }
 
 fn get_license_mask(image : &ImgMat) -> ImgBWMat{
@@ -139,4 +163,19 @@ fn find_x_bounderies_lower_higer(x_low : &mut i32, x_high : &mut i32, x : usize)
     if (x as i32) > *x_high {
         *x_high = x as i32;
     }
+}
+
+pub fn create_disk(diameter : u32) -> Vec2d<bool>{
+    let mut disk : Vec2d<bool> = vec![vec![false; diameter as usize]; diameter as usize];
+    let radius : i32 = (diameter as i32 / 2) as i32;
+
+    for x in 0..(diameter as i32) {
+        for y in 0..(diameter as i32) {
+            if (x - radius).pow(2) + (y - radius).pow(2) <= radius.pow(2) {
+                disk[y as usize][x as usize] = true;
+            }
+        }
+    }
+
+    return disk;
 }

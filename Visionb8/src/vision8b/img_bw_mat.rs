@@ -3,6 +3,8 @@ use image::GenericImage;
 
 use crate::image::Pixel;
 
+use crate::vision8b::license_plate::create_disk;
+
 pub type Vec2d<T> = Vec<Vec<T>>; //2D vector
 
 pub struct ImgBWMat {
@@ -52,75 +54,74 @@ impl ImgBWMat {
 		let _res = img.save(path);
 	}
 
-	pub fn morph_erode(&mut self, window: Vec2d<bool>, centre_x: u32, centre_y: u32) {
-		let window_height = window.len() as u32;
-		let window_width = window[0].len() as u32;
-		let mut temp_img_mat = Vec2d::new();
-		for image_y in 0..(self.height) {
-			let mut temp_vector: Vec<bool> = Vec::new();
-			for image_x in 0..(self.width) {
-				let mut pix_out = true;
-				for window_y in 0..(window_height) {
-					for window_x in 0..(window_width) {
-						let x_check = image_x as i32 - centre_x as i32 + window_x as i32 - 1;
-						let y_check = image_y as i32 - centre_y as i32 + window_y as i32 - 1;
+	fn erode_slice(&self, window: &Vec2d<bool>, current_x : usize, current_y : usize) -> bool {
+		let window_height = window.len();
+		let window_width = window[0].len();
 
-						if (x_check >= 0) && ((x_check as u32) < self.width && ((y_check as u32) < self.height))
-							&& x_check <= self.width as i32
-							&& y_check >= 0 && y_check <= self.height as i32
-						{
-							if window[window_y as usize][window_x as usize]
-								&& !self.image_matrix[y_check as usize][x_check as usize]
-							{
-								pix_out = false;
-							}
+		let centre_x = window_width / 2;
+		let centre_y = window_height / 2;
 
-							if !pix_out {}
-						}
+		for y in 0..window_height {
+			for x in 0..window_width {
+				let check_x = (current_x as i32) - (centre_x as i32) + (x as i32);
+				let check_y = (current_y as i32) - (centre_y as i32) + (y as i32);
+
+				if (check_x >= 0) && (check_x < self.width as i32) && (check_y >= 0) && (check_y < self.height as i32) {
+					if window[y][x] && !self.image_matrix[check_y as usize][check_x as usize] {
+						
+						return false;
 					}
 				}
-				temp_vector.push(pix_out);
 			}
-			temp_img_mat.push(temp_vector);
-		}
-
-		self.image_matrix = temp_img_mat;
+		}		
+		return true;
 	}
 
-	pub fn morph_dilate(&mut self, window: Vec2d<bool>, centre_x: u32, centre_y: u32) {
-		let window_height = window.len() as u32;
-		let window_width = window[0].len() as u32;
-		let mut temp_img_mat = Vec2d::new();
-		for image_y in 0..(self.height) {
-			let mut temp_vector: Vec<bool> = Vec::new();
-			for image_x in 0..(self.width) {
-				let mut pix_out = false;
-				for window_y in 0..(window_height) {
-					for window_x in 0..(window_width) {
-						let x_check = image_x as i32 - centre_x as i32 + window_x as i32 - 1;
-						let y_check = image_y as i32 - centre_y as i32 + window_y as i32 - 1;
+	pub fn morph_erode(&mut self, window: &Vec2d<bool>){
+		let mut new_bw_image : Vec2d<bool> = vec![vec![false; self.width as usize]; self.height as usize];
 
-						if (x_check >= 0) && ((x_check as u32) < self.width && ((y_check as u32) < self.height))
-							&& x_check <= self.width as i32
-							&& y_check >= 0 && y_check <= self.height as i32
-						{
-							if window[window_y as usize][window_x as usize]
-								&& self.image_matrix[y_check as usize][x_check as usize]
-							{
-								pix_out = true;
-							}
+		for y in 0..(self.height as usize) {
+			for x in 0..(self.width as usize) {
+				new_bw_image[y][x] = self.erode_slice(&window, x, y);
+			}
+		}
 
-							if pix_out {}
-						}
+		self.image_matrix = new_bw_image;
+	}
+
+	fn dilate_slice(&self, window: &Vec2d<bool>, current_x : usize, current_y : usize) -> bool {
+		let window_height = window.len();
+		let window_width = window[0].len();
+
+		let centre_x = window_width / 2;
+		let centre_y = window_height / 2;
+
+		for y in 0..window_height {
+			for x in 0..window_width {
+				let check_x = (current_x as i32) - (centre_x as i32) + (x as i32);
+				let check_y = (current_y as i32) - (centre_y as i32) + (y as i32);
+
+				if (check_x >= 0) && (check_x < self.width as i32) && (check_y >= 0) && (check_y < self.height as i32) {
+					if window[y][x] && self.image_matrix[check_y as usize][check_x as usize] {
+						
+						return true;
 					}
 				}
-
-				temp_vector.push(pix_out);
 			}
+		}		
+		return false;
+	}
 
-			temp_img_mat.push(temp_vector);
+	pub fn morph_dilate(&mut self, window: &Vec2d<bool>){
+		let mut new_bw_image : Vec2d<bool> = vec![vec![false; self.width as usize]; self.height as usize];
+
+		for y in 0..(self.height as usize) {
+			for x in 0..(self.width as usize) {
+				new_bw_image[y][x] = self.dilate_slice(&window, x, y);
+			}
 		}
-		self.image_matrix = temp_img_mat;
+
+		self.image_matrix = new_bw_image;
 	}
 
 	pub fn resize(&mut self, ratio : f64){
@@ -148,16 +149,10 @@ impl ImgBWMat {
 	}
 
 	fn clean_image(&mut self){
-		let window: Vec2d<bool> = vec![
-			vec![false	, true	, true	, true	, false	],
-			vec![true	, true	, true	, true	, true	],
-			vec![true	, true	, true	, true	, true	],
-			vec![true	, true	, true	, true	, true	],
-			vec![false	, true	, true	, true	, false	],
-		];
+		let window = create_disk(5);
 
-		self.morph_dilate(window.clone(), 3, 3);
-		self.morph_erode(window.clone(), 3, 3);
+		self.morph_dilate(&window);
+		self.morph_erode(&window);
 	}
 
 	pub fn count_white_pixels(&self) -> u32{
@@ -189,8 +184,84 @@ impl ImgBWMat {
 		self.height = self.image_matrix.len() as u32;
 	}
 
-	pub fn clear_border(){
-		unimplemented!();
+	fn clear_top_border(&mut self){
+		for x in 0..(self.image_matrix[0].len()){
+			if self.image_matrix[0][x] {
+				let mut y = 0;
+
+				loop{
+					self.image_matrix[y][x] = false;
+					y += 1;
+
+					if !self.image_matrix[y][x] {
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	fn clear_bottom_border(&mut self){
+		for x in 0..(self.image_matrix[0].len()){
+			let y = self.image_matrix.len() - 1;
+			self.image_matrix[y][x] = true;
+		}
+
+		for x in 0..(self.image_matrix[0].len()){
+			if self.image_matrix[self.image_matrix.len() - 1][x] {
+
+				let mut y = self.image_matrix.len() -1;
+				loop{
+					self.image_matrix[y][x] = false;
+					y -= 1;
+
+					if !self.image_matrix[y][x] {
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	fn clear_left_border(&mut self){
+		for y in 0..(self.image_matrix.len()){
+			if self.image_matrix[y][0] {
+				let mut x = 0;
+				
+				loop{
+					self.image_matrix[y][x] = false;
+					x += 1;
+
+					if !self.image_matrix[y][x] {
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	fn clear_right_border(&mut self){
+		for y in 0..(self.image_matrix.len()){
+			if self.image_matrix[y][self.image_matrix[0].len() - 1] {
+				let mut x = self.image_matrix[0].len() - 1;
+
+				loop{
+					self.image_matrix[y][x] = false;
+					x -= 1;
+
+					if !self.image_matrix[y][x] {
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	pub fn clear_border(&mut self){
+		self.clear_top_border();
+		self.clear_bottom_border();
+		self.clear_left_border();
+		self.clear_right_border();
 	}
 }
 

@@ -1,14 +1,10 @@
-
-
 use crate::vision8b::*;
 
 use crate::vision8b::license_plate::create_disk;
 
-pub fn count_eyes(path : &str) {
-	
+pub fn count_eyes(path : &str) -> u32{
 	
 	let img = image::open(path).unwrap();
-	println!("dimensions {:?}", img.dimensions());
 	
 	let mut img_vec: ImgMat = ImgMat::new();
 	
@@ -39,6 +35,7 @@ pub fn count_eyes(path : &str) {
 	bw_vec.save_image("test3.bmp");
 	
 	label_vec.hoskop_coco(bw_vec.clone());
-	println!("{}", label_vec.obj_count);
+
+	return label_vec.obj_count;
 }
 

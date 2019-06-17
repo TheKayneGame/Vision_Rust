@@ -1,8 +1,6 @@
 use crate::vision8b::*;
 
-use std::io;
-use std::fs::{self, DirEntry};
-use std::path::Path;
+use std::fs;
 
 #[test]
 fn test_auto_1(){
@@ -29,12 +27,7 @@ fn test_auto5(){
     detect_license_plate("nummerbord.jpg"); 
 }
 
-#[test]
-fn test(){
-    println!("{}", 65u8 as char);
-}
-
-pub fn detect_license_plate(path : &str){
+pub fn detect_license_plate(path : &str) -> String{
 
 	let target_height = 50.0 as f64;
 	let image_load = image::open(path).unwrap();
@@ -69,36 +62,45 @@ pub fn detect_license_plate(path : &str){
     image_bw.clear_border();
     image_bw.save_image("license.bmp");
 
-    find_license_string(&image_bw);
+    return find_license_string(&image_bw);
 }
 
-fn find_license_string(license_plate : &ImgBWMat){
+fn find_license_string(license_plate : &ImgBWMat) -> String{
     let mut label_vec = ImgLabelMat::new();
-    let mut characters = Vec::new();
+    let mut characters_images = Vec::new();
     let mut stripes : Vec<u32> = Vec::new();
 
     label_vec.hoskop_coco(license_plate.clone());
     label_vec.boundaries.sort_by(|a, b| a.min.0.cmp(&b.min.0));
 
+    let license_width = (label_vec.boundaries.last().unwrap().min.0 - label_vec.boundaries[0].min.0) as u32;
+
     for boundary in label_vec.boundaries{   
-        if boundary.Area() > 200 {
+        if boundary.area() > 200 {
             let mut character = license_plate.clone();
             character.crop_image(boundary.min.0, 0, boundary.max.0, license_plate.image_matrix.len() as u32);
-            characters.push(character);
+            characters_images.push(character);
         }else {
             stripes.push(boundary.min.0);
         }
     }
 
-    let mut character_vector = detect_characters(&mut characters);
+    let mut character_vector = detect_characters(&mut characters_images);
 
-    insert_stripes(&mut character_vector, &stripes, license_plate.image_matrix[0].len() as u32);
+    insert_stripes(&mut character_vector, &stripes, license_width);
 
-    println!("{:?}", character_vector);
+    let mut license_string : String = String::new();
+
+    for character in character_vector{
+        license_string.push(character);
+    }
+    
+    return license_string;
 }
 
 fn insert_stripes(characters : &mut Vec<char>, stripes : &Vec<u32>, image_width : u32){
-    let image_half = image_width / 2;
+    let image_half = stripes[0] + (image_width / 2);
+
     let left = (image_half - stripes[0]) as f64;
     let right = (stripes[1] - image_half) as f64;
 
@@ -107,7 +109,7 @@ fn insert_stripes(characters : &mut Vec<char>, stripes : &Vec<u32>, image_width 
 
     characters.insert(2, '-');
 
-    if (right_ratio - left_ratio) > 0.1 {
+    if (right_ratio - left_ratio) < -0.3 {
         characters.insert(6, '-');
     }else{
         characters.insert(5, '-');
@@ -158,7 +160,7 @@ fn load_masks() -> Vec<Vec2d<bool>>{
         let mut image_rgb = ImgMat::new();
         image_rgb.load_image(image);
         image_rgb.grayscale();
-        let mut mask_bw = image_rgb.treshold(128);
+        let mask_bw = image_rgb.treshold(128);
         masks.push(mask_bw.image_matrix);
     } 
 
@@ -221,7 +223,7 @@ fn find_y_bounderies(image : &ImgBWMat) -> (u32, u32){
     return (y_low as u32, y_high as u32);
 }
 
-fn find_y_bounderies_lower_higer(y_low : &mut i32, mut y_high : &mut i32, y : usize){
+fn find_y_bounderies_lower_higer(y_low : &mut i32, y_high : &mut i32, y : usize){
     if (y as i32) < *y_low {
         *y_low = y as i32;
     }

@@ -30,6 +30,7 @@ impl ImgBWMat {
 		}
 	}
 
+	#[allow(dead_code)]
 	pub fn print_matrix(&self) {
 		for line in self.image_matrix.iter() {
 			for pixel in line {

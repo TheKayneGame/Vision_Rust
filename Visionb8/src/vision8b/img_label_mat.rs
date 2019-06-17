@@ -201,6 +201,7 @@ fn get_boundaries(&mut self){
 		
 	}
 	
+	#[allow(dead_code)]
 	pub fn print_matrix(self){
 		for line in self.image_matrix.clone() {
 			for pix in line {
@@ -228,7 +229,7 @@ fn get_boundaries(&mut self){
 }
 
 impl Boundary {
-	pub fn Area(&self) -> u32{
+	pub fn area(&self) -> u32{
 		let dx = (self.max.0 as i32) - (self.min.0 as i32);
 		let dy = (self.max.1 as i32) - (self.min.1 as i32);
 

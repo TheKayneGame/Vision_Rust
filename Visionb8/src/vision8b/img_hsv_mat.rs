@@ -1,6 +1,4 @@
-use image::Rgba;
 use image::GenericImage;
-use image::GenericImageView;
 use image::Pixel;
 
 pub type Vec2d<T> = Vec<Vec<T>>; //2D vector
@@ -10,16 +8,6 @@ pub struct HSVPixel {
 	pub saturation: u8,
 	pub value: u8
 } 
-
-impl HSVPixel {
-	pub fn clone(&self) -> HSVPixel{
-		HSVPixel {
-			hue: self.hue,
-			saturation: self.saturation,
-			value: self.value
-		}
-	}
-}
 
 pub struct ImgHSVMat {
 	pub image_matrix: Vec2d<HSVPixel>,
@@ -36,6 +24,7 @@ impl ImgHSVMat {
 		}
 	}
 
+	#[allow(dead_code)]
 	pub fn save_image(&self, path: &str) {
 		let max_alpha = 255;
 		let mut img = image::DynamicImage::new_rgb8(self.width, self.height);
@@ -85,21 +74,21 @@ fn color_min (red : f64, green : f64, blue : f64) -> f64{
 	return min;
 }
 
-fn calculate_hue (redAccent : f64, greenAccent : f64, blueAccent : f64, delta : f64, max : f64) -> u8{
+fn calculate_hue (red_accent : f64, green_accent : f64, blue_accent : f64, delta : f64, max : f64) -> u8{
 	let max_value = 255.0;
 
 	if delta == 0.0 {return 0};
 
-	if max == redAccent {
-		let intermediate = (greenAccent - blueAccent) / delta;
+	if max == red_accent {
+		let intermediate = (green_accent - blue_accent) / delta;
 		let result = (intermediate % 6.0) * 60.0;
 		return ((result / 360.0) * max_value) as u8;
-	}else if max == greenAccent {
-		let intermediate = (blueAccent - redAccent) / delta;
+	}else if max == green_accent {
+		let intermediate = (blue_accent - red_accent) / delta;
 		let result = (intermediate + 2.0) * 60.0;
 		return ((result / 360.0) * max_value) as u8;
-	}else if max == blueAccent {
-		let intermediate = (redAccent - greenAccent) / delta;
+	}else if max == blue_accent {
+		let intermediate = (red_accent - green_accent) / delta;
 		let result = (intermediate + 4.0) * 60.0;
 		return ((result / 360.0) * max_value) as u8;
 	}

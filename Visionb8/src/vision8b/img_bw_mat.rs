@@ -63,6 +63,13 @@ impl ImgBWMat {
 		let _res = img.save(path);
 	}
 
+	/// Takes a part from the image vector and erodes it using the window vector
+	/// Returns if the current pixel should be true or false
+	/// 
+	/// # Arguments
+	/// * `window` - The 2d vector containing the sliding window
+	/// * `current_x` - The x value of the pixel to calculate
+	/// * `current_y` - The y value of the pixel to calculate
 	fn erode_slice(&self, window: &Vec2d<bool>, current_x : usize, current_y : usize) -> bool {
 		let first_x_line = 0;
 		let half_divisor = 2;
@@ -74,6 +81,7 @@ impl ImgBWMat {
 		let centre_x = window_width / half_divisor;
 		let centre_y = window_height / half_divisor;
 
+		//check every pixel off the window against the surrounding pixels of the current pixel
 		for y in 0..window_height {
 			for x in 0..window_width {
 				let check_x = (current_x as i32) - (centre_x as i32) + (x as i32);
@@ -89,9 +97,14 @@ impl ImgBWMat {
 		return true;
 	}
 
+	/// Takes the image vector and erodes it using the window vector
+	/// 
+	/// # Arguments
+	/// * `window` - The 2d vector containing the sliding window
 	pub fn morph_erode(&mut self, window: &Vec2d<bool>){
 		let mut new_bw_image : Vec2d<bool> = vec![vec![false; self.width as usize]; self.height as usize];
 
+		//erode for every pixel in the image
 		for y in 0..(self.height as usize) {
 			for x in 0..(self.width as usize) {
 				new_bw_image[y][x] = self.erode_slice(&window, x, y);
@@ -101,6 +114,13 @@ impl ImgBWMat {
 		self.image_matrix = new_bw_image;
 	}
 
+	/// Takes a part from the image vector and dilates it using the window vector
+	/// Returns if the current pixel should be true or false
+	/// 
+	/// # Arguments
+	/// * `window` - The 2d vector containing the sliding window
+	/// * `current_x` - The x value of the pixel to calculate
+	/// * `current_y` - The y value of the pixel to calculate
 	fn dilate_slice(&self, window: &Vec2d<bool>, current_x : usize, current_y : usize) -> bool {
 		let first_x_line = 0;
 		let half_divisor = 2;
@@ -112,6 +132,7 @@ impl ImgBWMat {
 		let centre_x = window_width / half_divisor;
 		let centre_y = window_height / half_divisor;
 
+		//check every pixel off the window against the surrounding pixels of the current pixel
 		for y in 0..window_height {
 			for x in 0..window_width {
 				let check_x = (current_x as i32) - (centre_x as i32) + (x as i32);
@@ -127,11 +148,16 @@ impl ImgBWMat {
 		return false;
 	}
 
+	/// Takes the image vector and dilates it using the window vector
+	/// 
+	/// # Arguments
+	/// * `window` - The 2d vector containing the sliding window
 	pub fn morph_dilate(&mut self, window: &Vec2d<bool>){
 		let lowest_bound = 0;
 
 		let mut new_bw_image : Vec2d<bool> = vec![vec![false; self.width as usize]; self.height as usize];
-
+		
+		//dilate for every pixel in the image
 		for y in lowest_bound..(self.height as usize) {
 			for x in lowest_bound..(self.width as usize) {
 				new_bw_image[y][x] = self.dilate_slice(&window, x, y);
@@ -141,6 +167,10 @@ impl ImgBWMat {
 		self.image_matrix = new_bw_image;
 	}
 
+	/// Takes the ratio and resizes the image according to the ratio
+	/// 
+	/// # Arguments
+	/// * `ratio` - the ratio to resize the image to
 	pub fn resize(&mut self, ratio : f64){
 		let lowest_bound = 0;
 		let ratio_clean_limit = 1.0;
@@ -150,6 +180,7 @@ impl ImgBWMat {
 
 		let mut new_image : Vec2d<bool> = vec![vec![false; new_width as usize]; new_height as usize];
 
+		//map all the old pixels to the new matrix
 		for y in lowest_bound..(self.height - 1) {
 			for x in lowest_bound..(self.width - 1) {
 				let new_y = (y as f64 * ratio) as usize;
@@ -163,11 +194,14 @@ impl ImgBWMat {
 		self.height = self.image_matrix.len() as u32;
 		self.width = self.image_matrix[0].len() as u32;
 
+		//clean to image if the size is increased
 		if ratio > ratio_clean_limit {
 			self.clean_image();
 		}
 	}
 
+	/// Cleanes the image by using a 5 by 5 sliding window with a 
+	/// erode and than a dilate
 	fn clean_image(&mut self){
 		let disk_size = 5;
 
@@ -177,6 +211,7 @@ impl ImgBWMat {
 		self.morph_erode(&window);
 	}
 
+	/// Returns the amount of white pixels within an image
 	pub fn count_white_pixels(&self) -> u32{
 		let mut whites : u32 = 0;
 		let lowest_bound = 0;
@@ -192,6 +227,13 @@ impl ImgBWMat {
 		return whites;
 	}
 
+	///	Crops the image according to the given coördinates.
+	/// 
+	/// # Arguments
+	/// * `upper_left_x` - The x of the upper left corner to crop to
+	/// * `upper_left_y` - The y of the upper left corner to crop to
+	/// * `lower_right_x` - The x of the lower right corner to crop to
+	/// * `lower_right_y` - The y of the lower right corner to crop to
 	pub fn crop_image(&mut self, upper_left_x : u32, upper_left_y : u32, lower_right_x : u32, lower_right_y : u32){
 		let mut new_image: Vec2d<bool> = Vec::new();
 		let first_x_line = 0;
@@ -212,16 +254,20 @@ impl ImgBWMat {
 		self.height = self.image_matrix.len() as u32;
 	}
 
+	///	Removes the whites border(s) from the image at the top
 	fn clear_top_border(&mut self){
 		let first_x_line = 0;
 		let lowest_bound = 0;
 		let pixel_increment = 1;
 
+		//start on the leftmost pixel and go right until the last x is reached
 		for x in lowest_bound..(self.image_matrix[first_x_line].len()){
 			if self.image_matrix[first_x_line][x] {
 
 				let mut y = lowest_bound;
 
+				//keep going inward in the image until a black pixel is found
+				//and set all white pixels to black on the way.
 				loop{
 					self.image_matrix[y][x] = false;
 					y += pixel_increment;
@@ -238,20 +284,25 @@ impl ImgBWMat {
 		}
 	}
 
+	///	Removes the white border(s) from the image at the bottom
 	fn clear_bottom_border(&mut self){
 		let first_x_line = 0;
 		let lowest_bound = 0;
 		let pixel_increment = 1;
 		let offset = 1;
-
+		
+		//set all bottom pixels to white
 		for x in lowest_bound..(self.image_matrix[first_x_line].len()){
 			let y = self.image_matrix.len() - offset;
 			self.image_matrix[y][x] = true;
 		}
 
+		//start on the leftmost pixel and go right until the last x is reached
 		for x in lowest_bound..(self.image_matrix[first_x_line].len()){
 			if self.image_matrix[self.image_matrix.len() - offset][x] {
 
+				//keep going inward in the image until a black pixel is found
+				//and set all white pixels to black on the way.
 				let mut y = self.image_matrix.len() - offset;
 				loop{
 					self.image_matrix[y][x] = false;
@@ -270,15 +321,19 @@ impl ImgBWMat {
 		}
 	}
 
+	///	Removes the white border(s) from the image on the left
 	fn clear_left_border(&mut self){
 		let first_x_line = 0;
 		let lowest_bound = 0;
 		let pixel_increment = 1;
 
+		//starts on the least highest pixel and go until the last y is reached
 		for y in lowest_bound..(self.image_matrix.len()){
 			if self.image_matrix[y][0] {
 				let mut x = lowest_bound;
 				
+				//keep going inward in the image until a black pixel is found
+				//and set all white pixels to black on the way.
 				loop{
 					self.image_matrix[y][x] = false;
 
@@ -296,17 +351,21 @@ impl ImgBWMat {
 		}
 	}
 
+	///	Removes the white border(s) from the image on the right
 	fn clear_right_border(&mut self){
 		let first_x_line = 0;
 		let lowest_bound = 0;
 		let pixel_increment = 1;
 		let offset = 1;
 
+		//starts on the least highest pixel and go until the last y is reached
 		for y in lowest_bound..(self.image_matrix.len()){
 			if self.image_matrix[y][self.image_matrix[first_x_line].len() - 1] {
 
 				let mut x = self.image_matrix[first_x_line].len() - offset;
 
+				//keep going inward in the image until a black pixel is found
+				//and set all white pixels to black on the way.
 				loop{
 					self.image_matrix[y][x] = false;
 
@@ -324,6 +383,7 @@ impl ImgBWMat {
 		}
 	}
 
+	///Removes all border(s) from the image
 	pub fn clear_border(&mut self){
 		self.clear_top_border();
 		self.clear_bottom_border();

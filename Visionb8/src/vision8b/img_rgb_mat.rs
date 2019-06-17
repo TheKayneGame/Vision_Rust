@@ -126,20 +126,7 @@ impl ImgMat {
 		let _res = img.save(path);
 	}
 	
-
-	pub fn adjust_brightness(&mut self, brightness : i16){
-		for y in 0..(self.height as usize) {
-			for x in 0..(self.width as usize) {
-				self.image_matrix[y][x] = image::Rgba::from_channels(
-					((self.image_matrix[y][x][0] as i16) + brightness) as u8,
-					((self.image_matrix[y][x][1] as i16) + brightness) as u8,
-					((self.image_matrix[y][x][2] as i16) + brightness) as u8,
-					255u8
-				);
-			}
-		}
-	}
-	
+	#[allow(dead_code)]
 	pub fn print_matrix(&self) {
 		for line in self.image_matrix.iter() {
 			for pixel in line {

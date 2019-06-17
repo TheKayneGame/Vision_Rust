@@ -1,10 +1,7 @@
-Visionb8/target/
-<<<<<<< HEAD
+visionb8/target/
 /.metadata/
-=======
 .metadata/
->>>>>>> no message
-Visionb8.old/
+visionb8.old/
 *.exe
 VisionGui/VisionGui/bin/
 VisionGui/VisionGui/obj/Debug/MainWindow.g.i.cs

@@ -1,8 +1,6 @@
 use crate::vision8b::*;
 
-use std::io;
-use std::fs::{self, DirEntry};
-use std::path::Path;
+use std::fs;
 
 #[test]
 fn test_auto_1(){
@@ -78,7 +76,7 @@ fn find_license_string(license_plate : &ImgBWMat) -> String{
     let license_width = (label_vec.boundaries.last().unwrap().min.0 - label_vec.boundaries[0].min.0) as u32;
 
     for boundary in label_vec.boundaries{   
-        if boundary.Area() > 200 {
+        if boundary.area() > 200 {
             let mut character = license_plate.clone();
             character.crop_image(boundary.min.0, 0, boundary.max.0, license_plate.image_matrix.len() as u32);
             characters_images.push(character);
@@ -162,7 +160,7 @@ fn load_masks() -> Vec<Vec2d<bool>>{
         let mut image_rgb = ImgMat::new();
         image_rgb.load_image(image);
         image_rgb.grayscale();
-        let mut mask_bw = image_rgb.treshold(128);
+        let mask_bw = image_rgb.treshold(128);
         masks.push(mask_bw.image_matrix);
     } 
 
@@ -225,7 +223,7 @@ fn find_y_bounderies(image : &ImgBWMat) -> (u32, u32){
     return (y_low as u32, y_high as u32);
 }
 
-fn find_y_bounderies_lower_higer(y_low : &mut i32, mut y_high : &mut i32, y : usize){
+fn find_y_bounderies_lower_higer(y_low : &mut i32, y_high : &mut i32, y : usize){
     if (y as i32) < *y_low {
         *y_low = y as i32;
     }

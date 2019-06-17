@@ -2,30 +2,6 @@ use crate::vision8b::*;
 
 use std::fs;
 
-#[test]
-fn test_auto_1(){
-    detect_license_plate("auto1.jpg");
-}
-
-#[test]
-fn test_auto_2(){
-    detect_license_plate("auto2.jpg");
-}
-
-#[test]
-fn test_auto_3(){
-    detect_license_plate("auto3.jpg");
-}
-
-#[test]
-fn test_auto_4(){
-    detect_license_plate("auto4.jpg");
-}
-
-#[test]
-fn test_auto5(){
-    detect_license_plate("nummerbord.jpg"); 
-}
 
 pub fn detect_license_plate(path : &str) -> String{
 
@@ -57,17 +33,19 @@ pub fn detect_license_plate(path : &str) -> String{
 
     let mean = image.pixel_mean();
 
-    let mut image_bw = if mean > mean_treshold_upper && mean < mean_treshold_lower {
-        image.treshold(treshold_dark_image)
+    let mut image_bw = if mean > 210 {
+        image.treshold(180)
+    }else if mean < 190  {
+        image.treshold(180)
     }else{
-        image.treshold(treshold_light_image)
+        image.treshold(128)
     };
 
     image_bw.save_image("license_step_4.bmp");
     image_bw.resize(target_height / image_bw.height as f64);
     clean_bw_image(&mut image_bw, structure_object_size_2);
     image_bw.clear_border();
-    image_bw.save_image("end_result_license.bmp");
+    image_bw.save_image("license_end_result.bmp");
 
     return find_license_string(&image_bw);
 }

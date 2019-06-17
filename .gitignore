@@ -5,3 +5,7 @@ Visionb8/target/
 .metadata/
 >>>>>>> no message
 Visionb8.old/
+*.exe
+VisionGui/VisionGui/bin/
+VisionGui/VisionGui/obj/Debug/MainWindow.g.i.cs
+VisionGui/VisionGui/obj/

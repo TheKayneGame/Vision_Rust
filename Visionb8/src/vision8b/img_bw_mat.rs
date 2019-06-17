@@ -1,7 +1,7 @@
 
 use image::GenericImage;
 
-use crate::image::Pixel;
+use image::Pixel;
 
 use crate::vision8b::license_plate::create_disk;
 

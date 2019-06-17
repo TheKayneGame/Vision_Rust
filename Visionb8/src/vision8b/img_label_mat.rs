@@ -132,7 +132,7 @@ impl ImgLabelMat {
 fn get_boundaries(&mut self){
 		let objcount = self.obj_count;
 		for target_label in 1..=objcount {
-			print!("l:{:3} ",target_label);
+			//print!("l:{:3} ",target_label);
 			let mut found_min_x = false;
 			let mut found_min_y = false;
 			

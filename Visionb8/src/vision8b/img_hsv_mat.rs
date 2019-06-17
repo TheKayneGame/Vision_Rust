@@ -109,6 +109,8 @@ fn calculate_hue (red_accent : f64, green_accent : f64, blue_accent : f64, delta
 
 	let no_hue = 0;
 
+	// the algorithm for calculating the hue of a pixel
+
 	if delta == invalid_delta {return no_hue};
 
 	if max == red_accent {
@@ -144,6 +146,7 @@ fn calculate_saturation(delta : f64, max : f64) -> u8{
 	let invalid_max = 0.0;
 	let no_saturation = 0;
 
+	// the saturation for calculating the hue of a pixel
 	if max == invalid_max {
 		return no_saturation;
 	}else {
@@ -169,14 +172,17 @@ pub fn convert_rgb_pixel_to_hsv(rgb : &image::Rgba<u8>) -> HSVPixel{
 		value: no_value as u8
 	};
 
+	//attanuade the rgb pixel
 	let ra : f64 = rgb[red_index] as f64 / max_value;
 	let ga : f64 = rgb[green_index] as f64 / max_value;
 	let ba : f64 = rgb[blue_index] as f64 / max_value;
 
+	// find the min and max values and delta
 	let max = color_max(ra, ga, ba);
 	let min = color_min(ra, ga, ba);
 	let delta = max - min;
 
+	//run all the algorithms for the hsv conversion
 	hsv_pixel.hue = calculate_hue(ra, ga, ba, delta, max);
 	hsv_pixel.saturation = calculate_saturation(delta, max);
 	hsv_pixel.value = (max * max_value) as u8;

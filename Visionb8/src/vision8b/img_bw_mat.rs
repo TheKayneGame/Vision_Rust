@@ -81,6 +81,7 @@ impl ImgBWMat {
 		let centre_x = window_width / half_divisor;
 		let centre_y = window_height / half_divisor;
 
+		//check every pixel off the window against the surrounding pixels of the current pixel
 		for y in 0..window_height {
 			for x in 0..window_width {
 				let check_x = (current_x as i32) - (centre_x as i32) + (x as i32);
@@ -103,6 +104,7 @@ impl ImgBWMat {
 	pub fn morph_erode(&mut self, window: &Vec2d<bool>){
 		let mut new_bw_image : Vec2d<bool> = vec![vec![false; self.width as usize]; self.height as usize];
 
+		//erode for every pixel in the image
 		for y in 0..(self.height as usize) {
 			for x in 0..(self.width as usize) {
 				new_bw_image[y][x] = self.erode_slice(&window, x, y);
@@ -130,6 +132,7 @@ impl ImgBWMat {
 		let centre_x = window_width / half_divisor;
 		let centre_y = window_height / half_divisor;
 
+		//check every pixel off the window against the surrounding pixels of the current pixel
 		for y in 0..window_height {
 			for x in 0..window_width {
 				let check_x = (current_x as i32) - (centre_x as i32) + (x as i32);
@@ -153,7 +156,8 @@ impl ImgBWMat {
 		let lowest_bound = 0;
 
 		let mut new_bw_image : Vec2d<bool> = vec![vec![false; self.width as usize]; self.height as usize];
-
+		
+		//dilate for every pixel in the image
 		for y in lowest_bound..(self.height as usize) {
 			for x in lowest_bound..(self.width as usize) {
 				new_bw_image[y][x] = self.dilate_slice(&window, x, y);
@@ -176,6 +180,7 @@ impl ImgBWMat {
 
 		let mut new_image : Vec2d<bool> = vec![vec![false; new_width as usize]; new_height as usize];
 
+		//map all the old pixels to the new matrix
 		for y in lowest_bound..(self.height - 1) {
 			for x in lowest_bound..(self.width - 1) {
 				let new_y = (y as f64 * ratio) as usize;
@@ -189,6 +194,7 @@ impl ImgBWMat {
 		self.height = self.image_matrix.len() as u32;
 		self.width = self.image_matrix[0].len() as u32;
 
+		//clean to image if the size is increased
 		if ratio > ratio_clean_limit {
 			self.clean_image();
 		}
@@ -254,11 +260,14 @@ impl ImgBWMat {
 		let lowest_bound = 0;
 		let pixel_increment = 1;
 
+		//start on the leftmost pixel and go right until the last x is reached
 		for x in lowest_bound..(self.image_matrix[first_x_line].len()){
 			if self.image_matrix[first_x_line][x] {
 
 				let mut y = lowest_bound;
 
+				//keep going inward in the image until a black pixel is found
+				//and set all white pixels to black on the way.
 				loop{
 					self.image_matrix[y][x] = false;
 					y += pixel_increment;
@@ -281,15 +290,19 @@ impl ImgBWMat {
 		let lowest_bound = 0;
 		let pixel_increment = 1;
 		let offset = 1;
-
+		
+		//set all bottom pixels to white
 		for x in lowest_bound..(self.image_matrix[first_x_line].len()){
 			let y = self.image_matrix.len() - offset;
 			self.image_matrix[y][x] = true;
 		}
 
+		//start on the leftmost pixel and go right until the last x is reached
 		for x in lowest_bound..(self.image_matrix[first_x_line].len()){
 			if self.image_matrix[self.image_matrix.len() - offset][x] {
 
+				//keep going inward in the image until a black pixel is found
+				//and set all white pixels to black on the way.
 				let mut y = self.image_matrix.len() - offset;
 				loop{
 					self.image_matrix[y][x] = false;
@@ -314,10 +327,13 @@ impl ImgBWMat {
 		let lowest_bound = 0;
 		let pixel_increment = 1;
 
+		//starts on the least highest pixel and go until the last y is reached
 		for y in lowest_bound..(self.image_matrix.len()){
 			if self.image_matrix[y][0] {
 				let mut x = lowest_bound;
 				
+				//keep going inward in the image until a black pixel is found
+				//and set all white pixels to black on the way.
 				loop{
 					self.image_matrix[y][x] = false;
 
@@ -342,11 +358,14 @@ impl ImgBWMat {
 		let pixel_increment = 1;
 		let offset = 1;
 
+		//starts on the least highest pixel and go until the last y is reached
 		for y in lowest_bound..(self.image_matrix.len()){
 			if self.image_matrix[y][self.image_matrix[first_x_line].len() - 1] {
 
 				let mut x = self.image_matrix[first_x_line].len() - offset;
 
+				//keep going inward in the image until a black pixel is found
+				//and set all white pixels to black on the way.
 				loop{
 					self.image_matrix[y][x] = false;
 

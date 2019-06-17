@@ -183,11 +183,13 @@ impl ImgMat {
 		let green_index = 0;
 		let blue_index = 0;
 
+		//calculate the average of the first pixel
 		let mut average = 
 			((self.image_matrix[first_pixel_y][first_pixel_x][red_index] as u16) +
 			(self.image_matrix[first_pixel_y][first_pixel_x][green_index] as u16) +
 			(self.image_matrix[first_pixel_y][first_pixel_x][blue_index] as u16)) / average_color_divisor;
 
+		//calculate the average of every pixel
 		for y in 0..(self.height as usize){
 			for x in 1..(self.width as usize){ 
 				average += ((self.image_matrix[y][x][red_index] as u16) +
@@ -210,7 +212,8 @@ impl ImgMat {
 
 		hsv_mat.height = self.height;
 		hsv_mat.width = self.width;
-
+		
+		//convert every rgb pixel to hsv
 		for y in lowest_bound..(self.height as usize) {
 			let mut x_vector : Vec<HSVPixel> = Vec::new();
 			for x in lowest_bound..(self.width as usize){

@@ -17,37 +17,44 @@ pub fn detect_license_plate(path : &str) -> String{
 
     let treshold_dark_image = 180;
     let treshold_light_image = 128;
-
+    
+    //load the image
 	let image_load = image::open(path).unwrap();
 	let mut image = ImgMat::new();
 	image.load_image(image_load);
 
+    //find the license plate
     let mut license_mask = get_license_mask(&image);
     clean_bw_image(&mut license_mask, structure_object_size_10);
     license_mask.save_image("license_step_1.bmp");
 
+    //crop to the license plate
     let coordinates = find_license_bounderies(&license_mask);
     image.crop_image(coordinates.0, coordinates.1, coordinates.2, coordinates.3);
 
+    //convert to grayscale
     image.save_image("license_step_2.bmp");
     image.grayscale();
     image.save_image("license_step_3.bmp");
     image.invert();
 
     let mean = image.pixel_mean();
-
+    
+    // convert image to black and white
     let mut image_bw = if mean > mean_treshold_upper || mean < mean_treshold_lower {
         image.treshold(treshold_dark_image)
     }else{
         image.treshold(treshold_light_image)
     };
 
+    //make image ready for character detection
     image_bw.save_image("license_step_4.bmp");
     image_bw.resize(target_height / image_bw.height as f64);
     clean_bw_image(&mut image_bw, structure_object_size_2);
     image_bw.clear_border();
     image_bw.save_image("license_end_result.bmp");
-
+    
+    //find the license plate string
     return find_license_string(&image_bw);
 }
 
@@ -63,6 +70,7 @@ fn find_license_string(license_plate : &ImgBWMat) -> String{
     label_vec.hoskop_coco(license_plate.clone());
     label_vec.boundaries.sort_by(|a, b| a.min.0.cmp(&b.min.0));
 
+    //find the characters and filter out the dashes
     for boundary in label_vec.boundaries{   
         if boundary.area() > 200 {
             let mut character = license_plate.clone();
@@ -73,9 +81,11 @@ fn find_license_string(license_plate : &ImgBWMat) -> String{
         }
     }
 
+    //detect the characters
     let character_vector = detect_characters(&mut characters_images);
     let mut license_string : String = String::new();
 
+    //convert the characters to a string
     for character in character_vector{
         license_string.push(character);
     }
@@ -148,12 +158,14 @@ fn detect_single_character(character : &mut ImgBWMat, masks : &Vec<Vec2d<bool>>)
     let letter_offset = 87;
     let max_number = 9;
     let character_increment = 1;
-
+    
+    //run every mask over the character
     for mask in masks {
         let mut temp = character.clone();
         temp.morph_erode(mask);
         temp.clear_border();
 
+        //check likeness of the mask and save if likeness is higher
         if likeness < temp.count_white_pixels() {
             likeness = temp.count_white_pixels();
             
@@ -173,6 +185,7 @@ fn load_masks() -> Vec<Vec2d<bool>>{
     let paths = fs::read_dir("./LetterMasks").unwrap();
     let mut masks : Vec<Vec2d<bool>> = vec![]; 
 
+    //load every mask and convert to black and white
     for path in paths {
         let image = image::open(path.unwrap().path()).unwrap();
         let mut image_rgb = ImgMat::new();
@@ -214,10 +227,12 @@ fn get_license_mask(image : &ImgMat) -> ImgBWMat{
     let saturation_limit = 170;
     let value_limit = 150;
 
+    //prepare the black and white matrix
     license_mask.width = hsv.width;
     license_mask.height = hsv.height;
     license_mask.image_matrix = vec![vec![false; hsv.width as usize]; hsv.height as usize];
 
+    //find the hsv pixel that meet the conditions and set those pixels to true in the black and white matrix
     for y in lower_bound..(hsv.height as usize) {
         for x in lower_bound..(hsv.width as usize){
             let hue = hsv.image_matrix[y][x].hue;
@@ -334,6 +349,7 @@ pub fn create_disk(diameter : u32) -> Vec2d<bool>{
     let mut disk : Vec2d<bool> = vec![vec![false; diameter as usize]; diameter as usize];
     let radius : i32 = (diameter as i32 / diameter_divisor) as i32;
 
+    //fill the matrix according to the formule (x - x_offset)^2 + (y - y_offset)^2 = radius^2
     for x in lower_bound..(diameter as i32) {
         for y in lower_bound..(diameter as i32) {
             if (x - radius).pow(2) + (y - radius).pow(2) <= radius.pow(2) {

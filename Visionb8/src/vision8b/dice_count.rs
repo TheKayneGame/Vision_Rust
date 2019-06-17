@@ -3,7 +3,7 @@ use crate::vision8b::*;
 use crate::vision8b::license_plate::create_disk;
 
 pub fn count_eyes(path : &str) -> u32{
-	let desired_height : f64 = 300.0;
+	let desired_height : f64 = 500.0;
 	let disk_size_3 : u32 = 3;
 	let disk_size_5 : u32 = 5; 
 	

@@ -2,48 +2,33 @@ use crate::vision8b::*;
 
 use std::fs;
 
-#[test]
-fn test_auto_1(){
-    detect_license_plate("auto1.jpg");
-}
-
-#[test]
-fn test_auto_2(){
-    detect_license_plate("auto2.jpg");
-}
-
-#[test]
-fn test_auto_3(){
-    detect_license_plate("auto3.jpg");
-}
-
-#[test]
-fn test_auto_4(){
-    detect_license_plate("auto4.jpg");
-}
-
-#[test]
-fn test_auto5(){
-    detect_license_plate("nummerbord.jpg"); 
-}
 
 pub fn detect_license_plate(path : &str) -> String{
 
 	let target_height = 50.0 as f64;
+    let structure_object_size_10 = 10;
+    let structure_object_size_2 = 2;
+
+    let mean_treshold_upper = 210;
+    let mean_treshold_lower = 190;
+
+    let treshold_dark_image = 180;
+    let treshold_light_image = 128;
+
 	let image_load = image::open(path).unwrap();
 	let mut image = ImgMat::new();
 	image.load_image(image_load);
 
     let mut license_mask = get_license_mask(&image);
-    clean_bw_image(&mut license_mask, 10);
-    license_mask.save_image("license_mask.bmp");
+    clean_bw_image(&mut license_mask, structure_object_size_10);
+    license_mask.save_image("license_step_1.bmp");
 
     let coordinates = find_license_bounderies(&license_mask);
     image.crop_image(coordinates.0, coordinates.1, coordinates.2, coordinates.3);
 
-    image.save_image("cropped.bmp");
+    image.save_image("license_step_2.bmp");
     image.grayscale();
-    image.save_image("grayscale.bmp");
+    image.save_image("license_step_3.bmp");
     image.invert();
 
     let mean = image.pixel_mean();
@@ -56,11 +41,11 @@ pub fn detect_license_plate(path : &str) -> String{
         image.treshold(128)
     };
 
-    image_bw.save_image("original_bw_license.bmp");
+    image_bw.save_image("license_step_4.bmp");
     image_bw.resize(target_height / image_bw.height as f64);
-    clean_bw_image(&mut image_bw, 2);
+    clean_bw_image(&mut image_bw, structure_object_size_2);
     image_bw.clear_border();
-    image_bw.save_image("license.bmp");
+    image_bw.save_image("license_end_result.bmp");
 
     return find_license_string(&image_bw);
 }
@@ -99,20 +84,31 @@ fn find_license_string(license_plate : &ImgBWMat) -> String{
 }
 
 fn insert_stripes(characters : &mut Vec<char>, stripes : &Vec<u32>, image_width : u32){
-    let image_half = stripes[0] + (image_width / 2);
+    let index_first_dash = 0;
+    let index_second_dash = 1;
 
-    let left = (image_half - stripes[0]) as f64;
-    let right = (stripes[1] - image_half) as f64;
+    let half_divisor = 2;
+
+    let index_first_dash_plate = 2;
+    let index_second_dash_plate_1 = 5;
+    let index_second_dash_plate_2 = 6;
+
+    let ratio_limit_dash = -0.3;
+
+    let image_half = stripes[index_first_dash] + (image_width / half_divisor);
+
+    let left = (image_half - stripes[index_first_dash]) as f64;
+    let right = (stripes[index_second_dash] - image_half) as f64;
 
     let left_ratio = left / (image_half as f64);
     let right_ratio = right / (image_half as f64);
 
-    characters.insert(2, '-');
+    characters.insert(index_first_dash_plate, '-');
 
-    if (right_ratio - left_ratio) < -0.3 {
-        characters.insert(6, '-');
+    if (right_ratio - left_ratio) < -ratio_limit_dash {
+        characters.insert(index_second_dash_plate_2, '-');
     }else{
-        characters.insert(5, '-');
+        characters.insert(index_second_dash_plate_1, '-');
     }
 }
 
@@ -132,6 +128,11 @@ fn detect_single_character(character : &mut ImgBWMat, masks : &Vec<Vec2d<bool>>)
     let mut guess : char = '0';
     let mut likeness = 0;
 
+    let number_offset = 48;
+    let letter_offset = 87;
+    let max_number = 9;
+    let character_increment = 1;
+
     for mask in masks {
         let mut temp = character.clone();
         temp.morph_erode(mask);
@@ -140,13 +141,13 @@ fn detect_single_character(character : &mut ImgBWMat, masks : &Vec<Vec2d<bool>>)
         if likeness < temp.count_white_pixels() {
             likeness = temp.count_white_pixels();
             
-            if counter <= 9 {
-                guess = (counter + 48) as char;
+            if counter <= max_number {
+                guess = (counter + number_offset) as char;
             }else{
-                guess = (counter + 87) as char;
+                guess = (counter + letter_offset) as char;
             }
         }
-        counter += 1;
+        counter += character_increment;
     }
     return guess;
 }
@@ -180,17 +181,24 @@ fn get_license_mask(image : &ImgMat) -> ImgBWMat{
     let hsv = image.rgb_to_hsv();
     let mut license_mask : ImgBWMat = ImgBWMat::new();
 
+    let lower_bound = 0;
+
+    let hue_upper_limit = 50;
+    let hue_lower_limit = 15;
+    let saturation_limit = 170;
+    let value_limit = 150;
+
     license_mask.width = hsv.width;
     license_mask.height = hsv.height;
     license_mask.image_matrix = vec![vec![false; hsv.width as usize]; hsv.height as usize];
 
-    for y in 0..(hsv.height as usize) {
-        for x in 0..(hsv.width as usize){
+    for y in lower_bound..(hsv.height as usize) {
+        for x in lower_bound..(hsv.width as usize){
             let hue = hsv.image_matrix[y][x].hue;
             let saturation = hsv.image_matrix[y][x].saturation;
             let value = hsv.image_matrix[y][x].value;
 
-            if hue > 15 && hue < 50 && saturation > 170 && value > 150{
+            if hue > hue_lower_limit && hue < hue_upper_limit && saturation > saturation_limit && value > value_limit{
                 license_mask.image_matrix[y][x] = true;
             }else{
                 license_mask.image_matrix[y][x] = false;
@@ -212,8 +220,10 @@ fn find_y_bounderies(image : &ImgBWMat) -> (u32, u32){
     let mut y_low = (image.height + 1) as i32;
     let mut y_high = -1 as i32;
 
-    for x in 0..(image.width as usize) {
-        for y in 0..(image.height as usize) {
+    let lower_bound = 0;
+
+    for x in lower_bound..(image.width as usize) {
+        for y in lower_bound..(image.height as usize) {
             if image.image_matrix[y][x] {
                 find_y_bounderies_lower_higer(&mut y_low, &mut y_high, y);
             }
@@ -237,8 +247,10 @@ fn find_x_bounderies(image : &ImgBWMat) -> (u32, u32){
     let mut x_low = (image.width + 1) as i32;
     let mut x_high = -1 as i32;
 
-    for y in 0..(image.height as usize) {
-        for x in 0..(image.width as usize) {
+    let lower_bound = 0;
+
+    for y in lower_bound..(image.height as usize) {
+        for x in lower_bound..(image.width as usize) {
             if image.image_matrix[y][x] {
                 find_x_bounderies_lower_higer(&mut x_low, &mut x_high, x);
             }
@@ -259,11 +271,14 @@ fn find_x_bounderies_lower_higer(x_low : &mut i32, x_high : &mut i32, x : usize)
 }
 
 pub fn create_disk(diameter : u32) -> Vec2d<bool>{
-    let mut disk : Vec2d<bool> = vec![vec![false; diameter as usize]; diameter as usize];
-    let radius : i32 = (diameter as i32 / 2) as i32;
+    let lower_bound = 0;
+    let diameter_divisor = 2;
 
-    for x in 0..(diameter as i32) {
-        for y in 0..(diameter as i32) {
+    let mut disk : Vec2d<bool> = vec![vec![false; diameter as usize]; diameter as usize];
+    let radius : i32 = (diameter as i32 / diameter_divisor) as i32;
+
+    for x in lower_bound..(diameter as i32) {
+        for y in lower_bound..(diameter as i32) {
             if (x - radius).pow(2) + (y - radius).pow(2) <= radius.pow(2) {
                 disk[y as usize][x as usize] = true;
             }

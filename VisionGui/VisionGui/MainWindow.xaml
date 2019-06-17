@@ -5,9 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VisionGui"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="470" ResizeMode="NoResize">
     <Grid>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="270,171,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
 
+        <Button x:Name="path_image" Content="Open" HorizontalAlignment="Left" Margin="375,290,0,0" VerticalAlignment="Top" Width="75" Click="Path_image_Click" Height="23"/>
+        <TextBox x:Name="path_image_text" HorizontalAlignment="Left" Height="23" Margin="127,290,0,0" VerticalAlignment="Top" Width="243"/>
+        <Button x:Name="load_image" Content="Load" HorizontalAlignment="Left" Margin="375,318,0,0" VerticalAlignment="Top" Width="75" Click="Load_image_Click"/>
+        <Image x:Name="image" Height="275" Margin="10,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="440"/>
+        <Button x:Name="Run" Content="Run" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="375,346,0,0" Click="Run_Click"/>
+        <StackPanel HorizontalAlignment="Left" Height="48" Margin="270,346,0,0" VerticalAlignment="Top" Width="100">
+            <RadioButton x:Name="license" Content="License Plate" GroupName="mode" Checked="mode_change"/>
+            <RadioButton x:Name="dice" Content="Dice Count" GroupName="mode" Checked="mode_change"/>
+        </StackPanel>
+        <TextBox x:Name="Resultvis" HorizontalAlignment="Left" Height="23" Margin="127,371,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Focusable="False"/>
+        <Label Content="Image Path" HorizontalAlignment="Left" Margin="10,290,0,0" VerticalAlignment="Top" Width="112" Height="23"/>
+        <Label Content="Result" HorizontalAlignment="Left" Margin="10,371,0,0" VerticalAlignment="Top" Width="112" Height="23"/>
     </Grid>
 </Window>

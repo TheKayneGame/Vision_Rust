@@ -5,17 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VisionGui"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="470" ResizeMode="NoResize">
     <Grid>
-        <Grid HorizontalAlignment="Left" Height="399" Margin="10,10,0,0" VerticalAlignment="Top" Width="772">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="439*"/>
-                <ColumnDefinition Width="333*"/>
-            </Grid.ColumnDefinitions>
-            <Button x:Name="path_image" Content="Button" Grid.Column="1" HorizontalAlignment="Left" Margin="248,10,0,0" VerticalAlignment="Top" Width="75" Click="Path_image_Click"/>
-            <TextBox x:Name="path_image_text" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="10,8,0,0" VerticalAlignment="Top" Width="233"/>
-            <Button x:Name="load_image" Content="load" Grid.Column="1" HorizontalAlignment="Left" Margin="248,36,0,0" VerticalAlignment="Top" Width="75" Click="Load_image_Click"/>
-            <Image x:Name="image" Height="379" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="419"/>
-        </Grid>
+
+        <Button x:Name="path_image" Content="Open" HorizontalAlignment="Left" Margin="375,293,0,0" VerticalAlignment="Top" Width="75" Click="Path_image_Click"/>
+        <TextBox x:Name="path_image_text" HorizontalAlignment="Left" Height="23" Margin="10,290,0,0" VerticalAlignment="Top" Width="360"/>
+        <Button x:Name="load_image" Content="Load" HorizontalAlignment="Left" Margin="375,318,0,0" VerticalAlignment="Top" Width="75" Click="Load_image_Click"/>
+        <Image x:Name="image" Height="275" Margin="10,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="440"/>
+        <Button x:Name="Run" Content="Run" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="375,346,0,0" Click="Run_Click"/>
+        <StackPanel HorizontalAlignment="Left" Height="48" Margin="270,346,0,0" VerticalAlignment="Top" Width="100">
+            <RadioButton x:Name="license" Content="License Plate" GroupName="mode" Checked="mode_change"/>
+            <RadioButton x:Name="dice" Content="Dice Count" GroupName="mode" Checked="mode_change"/>
+        </StackPanel>
     </Grid>
 </Window>

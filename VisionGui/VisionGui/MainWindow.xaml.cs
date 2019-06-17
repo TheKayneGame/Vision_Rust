@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -23,34 +24,46 @@ namespace VisionGui
     /// </summary>
     /// 
 
+
     public partial class MainWindow : Window
     {
+        const string rust_location = "vision/vison8b.exe";
+        const string dice_arg = "--dice";
+        const string licenceplate_arg = "--license";
+
+        const string image_location = "vision/";
+
+
+        enum modes {
+            [Description("--dice")]
+            dice,
+            [Description("--license")]
+            license
+        };
+
+        modes mode;
+
+        
+
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-
-        }
 
         private void Path_image_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
-                MessageBox.Show(openFileDialog.FileName);
-            path_image_text.Text = openFileDialog.FileName;
-
+            {
+                path_image_text.Text = openFileDialog.FileName; 
+            }
         }
 
         private void Load_image_Click(object sender, RoutedEventArgs e)
         {
-           
-            var uri = new Uri(path_image_text.Text);
-            var bitmap = new BitmapImage(uri);
+            Change_image(path_image_text.Text);
 
-            image.Source = bitmap;
         }
 
 
@@ -63,10 +76,11 @@ namespace VisionGui
             //strCommandParameters are parameters to pass to program
             rustprocess.StartInfo.Arguments = CommandParameters;
             rustprocess.StartInfo.UseShellExecute = false;
+            rustprocess.StartInfo.CreateNoWindow = true;
             //Set output of program to be written to process output stream
             rustprocess.StartInfo.RedirectStandardOutput = true;
             //Optional
-            rustprocess.StartInfo.WorkingDirectory = strWorkingDirectory;
+            //rustprocess.StartInfo.WorkingDirectory = strWorkingDirectory;
             //Start the process
             rustprocess.Start();
             //Get program output
@@ -74,6 +88,39 @@ namespace VisionGui
             //Wait for process to finish
             rustprocess.WaitForExit();
             return strOutput;
+        }
+
+        private void Run_Click(object sender, RoutedEventArgs e)
+        {
+
+
+            string test = run_rust("visionb8.exe", "--" + mode.ToString() + " " + path_image_text.Text);
+            Change_image(mode.ToString() + "_end_result.bmp");
+            MessageBox.Show(test);
+        }
+
+        private void Change_image(string path)
+        {
+            var uri = new Uri(path_image_text.Text);
+            var bitmap = new BitmapImage(uri);
+            image.Source = bitmap;
+        }
+
+        private void mode_change(object sender, RoutedEventArgs e)
+        {
+            var button = sender as RadioButton;
+            MessageBox.Show(button.Name.ToString());
+            switch (button.Name.ToString())
+            {
+                case "license":
+                    mode = modes.license;
+                    break;
+                case "dice":
+                    mode = modes.dice;
+                    break;
+
+            }
+           
         }
     }
 }

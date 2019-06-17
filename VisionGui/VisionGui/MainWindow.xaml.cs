@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -27,7 +28,7 @@ namespace VisionGui
 
     public partial class MainWindow : Window
     {
-        const string rust_location = "vision/vison8b.exe";
+        const string rust_location = ".\\vision\\visionb8.exe";
         const string dice_arg = "--dice";
         const string licenceplate_arg = "--license";
 
@@ -94,22 +95,26 @@ namespace VisionGui
         {
 
 
-            string test = run_rust("visionb8.exe", "--" + mode.ToString() + " " + path_image_text.Text);
-            Change_image(mode.ToString() + "_end_result.bmp");
-            MessageBox.Show(test);
+            string test = run_rust(rust_location, "--" + mode.ToString() + " " + path_image_text.Text);
+            string result_image = Directory.GetCurrentDirectory() + "\\" + mode.ToString() + "_end_result.jpg";
+            Change_image(result_image);
+            Resultvis.Text = test;
         }
 
         private void Change_image(string path)
         {
-            var uri = new Uri(path_image_text.Text);
-            var bitmap = new BitmapImage(uri);
-            image.Source = bitmap;
+            if (!string.IsNullOrWhiteSpace(path)){
+                Console.WriteLine(path);
+                var uri = new Uri(path_image_text.Text);
+                var bitmap = new BitmapImage(uri);
+                image.Source = bitmap;
+            }
+            
         }
 
         private void mode_change(object sender, RoutedEventArgs e)
         {
             var button = sender as RadioButton;
-            MessageBox.Show(button.Name.ToString());
             switch (button.Name.ToString())
             {
                 case "license":

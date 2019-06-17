@@ -147,6 +147,13 @@ impl ImgMat {
 		}
 	}
 
+	///	Crops the image according to the given coördinates.
+	/// 
+	/// # Arguments
+	/// * `upper_left_x` - The x of the upper left corner to crop to
+	/// * `upper_left_y` - The y of the upper left corner to crop to
+	/// * `lower_right_x` - The x of the lower right corner to crop to
+	/// * `lower_right_y` - The y of the lower right corner to crop to
 	pub fn crop_image(&mut self, upper_left_x : u32, upper_left_y : u32, lower_right_x : u32, lower_right_y : u32){
 		let mut new_image: Vec2d<Rgba<u8>> = Vec::new();
 		for y in upper_left_y..lower_right_y {
@@ -162,6 +169,9 @@ impl ImgMat {
 		self.height = self.image_matrix.len() as u32;
 	}
 
+	///	Returns the average of all pixels in the image
+	/// 
+	/// # Arguments
 	pub fn pixel_mean(&self) -> u8{
 		let average_divisor = 2;
 		let average_color_divisor = 3;
@@ -190,6 +200,9 @@ impl ImgMat {
 		return average as u8; 
 	}
 
+	///	Returns the hsv version of the rgb image;
+	/// 
+	/// # Arguments
 	pub fn rgb_to_hsv(&self) -> ImgHSVMat {
 		let lowest_bound = 0;
 

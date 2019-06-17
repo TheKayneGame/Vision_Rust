@@ -48,6 +48,12 @@ impl ImgHSVMat {
 	}
 }
 
+///	Return the maximum of the rgb colors.
+/// 
+/// # Arguments
+/// * `red` - The value of the red color
+/// * `green` - The value of the green color
+/// * `blue` - The value of the blue color
 fn color_max (red : f64, green : f64, blue : f64) -> f64{
 	let mut max = red;
 
@@ -62,6 +68,12 @@ fn color_max (red : f64, green : f64, blue : f64) -> f64{
 	return max;
 }
 
+///	Return the minimum of the rgb colors.
+/// 
+/// # Arguments
+/// * `red` - The value of the red color
+/// * `green` - The value of the green color
+/// * `blue` - The value of the blue color
 fn color_min (red : f64, green : f64, blue : f64) -> f64{
 	let mut min = red;
 
@@ -76,6 +88,14 @@ fn color_min (red : f64, green : f64, blue : f64) -> f64{
 	return min;
 }
 
+///	Calculates the hue for the given rgb values, with the delta and max for those values.
+/// 
+/// # Arguments
+/// * `red_accent` - The adjusted value of the red color
+/// * `green_accent` - The adjusted value of the green color
+/// * `blue_accent` - The adjusted value of the blue color
+/// * `delta` - The delta for the given rgb values
+/// * `max` - The maximum of the given rgb values
 fn calculate_hue (red_accent : f64, green_accent : f64, blue_accent : f64, delta : f64, max : f64) -> u8{
 	let max_value = 255.0;
 	let invalid_delta = 0.0;
@@ -114,6 +134,11 @@ fn calculate_hue (red_accent : f64, green_accent : f64, blue_accent : f64, delta
 	return no_hue;
 }
 
+///	Calculates the saturation with the delta and max.
+/// 
+/// # Arguments
+/// * `delta` - The delta of  the rgb values
+/// * `max` - The maximum of the rgb values
 fn calculate_saturation(delta : f64, max : f64) -> u8{
 	let max_value = 255.0;
 	let invalid_max = 0.0;
@@ -126,6 +151,10 @@ fn calculate_saturation(delta : f64, max : f64) -> u8{
 	}
 }
 
+///	Returns the hsv pixel for the given rgb pixel
+/// 
+/// # Arguments
+/// * `rgb` - The rgb pixel to calculate the hsv pixel for.
 pub fn convert_rgb_pixel_to_hsv(rgb : &image::Rgba<u8>) -> HSVPixel{
 	let max_value : f64 = 255.0;
 	let no_value = 0;

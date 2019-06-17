@@ -6,6 +6,7 @@ pub mod img_label_mat;
 pub mod img_hsv_mat;
 pub mod license_plate;
 pub mod dice_count;
+pub mod unit_tests;
 
 pub use img_rgb_mat::ImgMat;
 pub use img_bw_mat::ImgBWMat;

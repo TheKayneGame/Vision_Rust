@@ -20,24 +20,27 @@ pub struct ImgMat {
 
 impl ImgMat {
 	pub fn new() -> ImgMat {
+		let no_size = 0;
+
 		ImgMat {
 			image_matrix: Vec2d::new(),
-			width: 0,
-			height: 0,
+			width: no_size,
+			height: no_size,
 		}
 	}
 
 	pub fn load_image(&mut self, img : image::DynamicImage) {
+		let lowest_bound = 0;
 
 		let mut vec_2d = Vec::new();
 
 		self.height = img.height();
 		self.width = img.width();
 
-		for y in 0..img.height() {
+		for y in lowest_bound..img.height() {
 			let mut temp_vector = Vec::new();
 
-			for x in 0..img.width() {
+			for x in lowest_bound..img.width() {
 				temp_vector.push(img.get_pixel(x, y));
 			}
 
@@ -48,6 +51,8 @@ impl ImgMat {
 	}
 
 	pub fn treshold(&self, treshold_val: u8) -> ImgBWMat {
+		let average_divisor = 3;
+
 		let mut bw_vec_out = ImgBWMat::new();
 		let mut vec_2d: Vec2d<bool> = Vec::new();
 
@@ -59,7 +64,7 @@ impl ImgMat {
 				let pixel_sum: u16 = u16::from(pixel_values.0)
 					+ u16::from(pixel_values.1)
 					+ u16::from(pixel_values.2);
-				let gray_value = (pixel_sum / 3) as u8;
+				let gray_value = (pixel_sum / average_divisor) as u8;
 
 				let bin_value: bool = gray_value > treshold_val;
 
@@ -74,6 +79,9 @@ impl ImgMat {
 	}
 
 	pub fn grayscale(&mut self) {
+		let average_divisor = 3;
+		let max_alpha = 255;
+
 		let mut vec_2d: Vec2d<Rgba<u8>> = Vec::new();
 
 		for line in self.image_matrix.iter() {
@@ -83,9 +91,9 @@ impl ImgMat {
 				let pixel_values = old_pixel.channels4();
 				let pixel_sum: u16 =
 					pixel_values.0 as u16 + pixel_values.1 as u16 + pixel_values.2 as u16;
-				let gray_value = (pixel_sum / 3) as u8;
+				let gray_value = (pixel_sum / average_divisor) as u8;
 
-				let new_pixel = image::Rgba::from_channels(gray_value, gray_value, gray_value, 255);
+				let new_pixel = image::Rgba::from_channels(gray_value, gray_value, gray_value, max_alpha);
 				temp_vector.push(new_pixel);
 			}
 			vec_2d.push(temp_vector);
@@ -94,6 +102,9 @@ impl ImgMat {
 	}
 
 	pub fn invert(&mut self) {
+		let max_color = 255;
+		let max_alpha = 255;
+
 		let mut vec_2d: Vec2d<Rgba<u8>> = Vec::new();
 		for line in self.image_matrix.iter() {
 			let mut temp_vector: Vec<Rgba<u8>> = Vec::new();
@@ -102,10 +113,10 @@ impl ImgMat {
 				let pixel_values = old_pixel.channels4();
 
 				let new_pixel = image::Rgba::from_channels(
-					255 - pixel_values.0,
-					255 - pixel_values.1,
-					255 - pixel_values.2,
-					255,
+					max_color - pixel_values.0,
+					max_color - pixel_values.1,
+					max_color - pixel_values.2,
+					max_alpha,
 				);
 				temp_vector.push(new_pixel);
 			}
@@ -152,17 +163,27 @@ impl ImgMat {
 	}
 
 	pub fn pixel_mean(&self) -> u8{
+		let average_divisor = 2;
+		let average_color_divisor = 3;
+
+		let first_pixel_x = 0;
+		let first_pixel_y = 0;
+
+		let red_index = 0;
+		let green_index = 0;
+		let blue_index = 0;
+
 		let mut average = 
-			((self.image_matrix[0][0][0] as u16) +
-			(self.image_matrix[0][0][1] as u16) +
-			(self.image_matrix[0][0][2] as u16)) / 3;
+			((self.image_matrix[first_pixel_y][first_pixel_x][red_index] as u16) +
+			(self.image_matrix[first_pixel_y][first_pixel_x][green_index] as u16) +
+			(self.image_matrix[first_pixel_y][first_pixel_x][blue_index] as u16)) / average_color_divisor;
 
 		for y in 0..(self.height as usize){
 			for x in 1..(self.width as usize){ 
-				average += ((self.image_matrix[y][x][0] as u16) +
-							(self.image_matrix[y][x][1] as u16) +
-							(self.image_matrix[y][x][2] as u16)) / 3;
-				average /= 2;
+				average += ((self.image_matrix[y][x][red_index] as u16) +
+							(self.image_matrix[y][x][green_index] as u16) +
+							(self.image_matrix[y][x][blue_index] as u16)) / average_color_divisor;
+				average /= average_divisor;
 			}
 		}
 
@@ -170,15 +191,16 @@ impl ImgMat {
 	}
 
 	pub fn rgb_to_hsv(&self) -> ImgHSVMat {
+		let lowest_bound = 0;
 
 		let mut hsv_mat : ImgHSVMat = ImgHSVMat::new();
 
 		hsv_mat.height = self.height;
 		hsv_mat.width = self.width;
 
-		for y in 0..(self.height as usize) {
+		for y in lowest_bound..(self.height as usize) {
 			let mut x_vector : Vec<HSVPixel> = Vec::new();
-			for x in 0..(self.width as usize){
+			for x in lowest_bound..(self.width as usize){
 				x_vector.push(convert_rgb_pixel_to_hsv(&self.image_matrix[y][x]));
 			}
 
